@@ -36,9 +36,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     print("로그인 시도: 이메일=$email, 비밀번호=$password");
-    // [!] 여기에 백엔드 API 호출 로직이 들어갑니다. (나중에 구현)
-
-    // (가짜) 로그인 성공 시 메인 화면으로 이동
     // 실제 앱에서는 API 호출 결과에 따라 이동합니다.
     Navigator.pushReplacement(
       context,
@@ -60,13 +57,12 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
-            // [수정] 자식 위젯들을 가로로 꽉 채우도록 변경
+  
             crossAxisAlignment: CrossAxisAlignment.stretch, 
             children: [
               // 상단 여백
               const SizedBox(height: 64), 
               
-              // 로그인 제목과 회원가입 버튼 (중앙 정렬된 로그인, 오른쪽에 회원가입)
               SizedBox(
                 height: 40, // Stack의 높이 지정
                 child: Stack(
