@@ -8,8 +8,6 @@ class Statistic {
   final int serviceOncePrice;
   final int userSatis;
 
-  bool isActive;
-
   Statistic({
     required this.userId,
     required this.appName,
@@ -17,8 +15,6 @@ class Statistic {
     required this.serviceMonthlyPrice,
     required this.serviceOncePrice,
     required this.userSatis,
-
-    this.isActive = true,
   });
 
   /// JSON (Map)으로부터 ServiceStatistic 객체를 생성합니다.
@@ -31,7 +27,6 @@ class Statistic {
       serviceMonthlyPrice: json['service_monthly_price'] as int,
       serviceOncePrice: json['service_once_price'] as int,
       userSatis: json['user_satis'] as int,
-      isActive: true,
     );
   }
 

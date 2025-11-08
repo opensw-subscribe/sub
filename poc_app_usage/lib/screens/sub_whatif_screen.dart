@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http; // http 패키지
 import 'dart:convert';
 import 'package:poc_app_usage/utils/logger.dart'; // logger 사용을 위해 import
-
-import '../bar_statistic.dart'; // Statistic 모델
-import '../service/sub_statistic_service.dart'; // StatisticService
+import '../service/sub_whatif_service.dart';
+import '../what-if_data.dart'; // Statistic 모델
 
 class SubWhatIfScreen extends StatefulWidget {
   // 🚨 1. 사용자 ID를 외부에서 필수로 받습니다.
@@ -17,15 +16,15 @@ class SubWhatIfScreen extends StatefulWidget {
 }
 
 class _SubWhatIfScreenState extends State<SubWhatIfScreen> {
-  final StatisticService _service = StatisticService();
-  late Future<List<Statistic>> _statisticFuture;
-  List<Statistic> _statistics = [];
+  final WhatifService _service = WhatifService();
+  late Future<List<WhatifData>> _statisticFuture;
+  List<WhatifData> _statistics = [];
 
   @override
   void initState() {
     super.initState();
     // 🚨 2. 전달받은 widget.userId를 사용하여 데이터를 요청합니다.
-    _statisticFuture = _service.fetchStatistics(widget.userId);
+    _statisticFuture = _service.fetchWhatifData(widget.userId);
   }
 
   // 비활성화된 서비스의 절약 가능 금액을 계산
@@ -62,7 +61,7 @@ class _SubWhatIfScreenState extends State<SubWhatIfScreen> {
   // -------------------------
   // UI 구성 요소: 목록 항목 위젯 (메인 화면용)
   // -------------------------
-  Widget _buildListItem(Statistic data) {
+  Widget _buildListItem(WhatifData data) {
     // 임시 색상 로직: 앱 이름의 해시 코드를 기반으로 색상 생성
     final Color itemColor = data.appName.hashCode % 2 == 0 ? Colors.teal : Colors.blue.shade800;
     final String formattedPrice = data.serviceMonthlyPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},');
@@ -151,7 +150,7 @@ class _SubWhatIfScreenState extends State<SubWhatIfScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(),
-      body: FutureBuilder<List<Statistic>>(
+      body: FutureBuilder<List<WhatifData>>(
         future: _statisticFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {

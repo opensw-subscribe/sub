@@ -1,11 +1,11 @@
-import 'package:http/http.dart' as http; // pubspec.yaml 확인 후 추가 필요
+import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:poc_app_usage/utils/logger.dart';
-import '../bar_statistic.dart'; // 모델 클래스 위치에 따라 경로 수정 필요
+import '../bar_graph_data.dart'; // 모델 클래스 위치에 따라 경로 수정 필요
 
-// 이 파일은 service/service_statistic_service.dart에 위치한다고 가정합니다.
+// 이 파일은 service/service_statistic_service.dart에 위치한다고 가정
 class StatisticService {
-  // 실제 API 엔드포인트로 변경하세요.
+  // 실제 API 엔드포인트로 변경
   static const String _baseUrl = 'https://your-server-domain.com';
   static const String _endpoint = '/api/statistic';
 
@@ -41,8 +41,7 @@ class StatisticService {
       }
     } catch (e) {
       // 3. 통신 오류, 파싱 오류 등 예외 처리
-      logger.i('데이터를 불러오는 중 오류 발생: $e');
-      // 호출한 UI 위젯에서 처리할 수 있도록 예외를 다시 던집니다.
+      logger.e('데이터를 불러오는 중 오류 발생: $e');
       rethrow; 
     }
   }
