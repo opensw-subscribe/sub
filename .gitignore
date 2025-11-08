@@ -1,0 +1,40 @@
+# Python 
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+dist/
+build/
+.env
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# IDE / Editor 
+.vscode/
+.idea/
+
+# OS files 
+.DS_Store
+Thumbs.db
+
+# Docker 
+/data/
+*.log
+
+# Pytest / coverage 
+htmlcov/
+.tox/
+.cache/
+.coverage
+pytest_cache/
+
+# FastAPI specific
+*.db
+
+# Firebase Key
+app/core/service_account_key.json
