@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 /// 구독 서비스 통계 데이터를 나타내는 모델 클래스
-class statistic {
+class Statistic {
   final String userId;
   final String appName;
   final String appCategory;
@@ -9,7 +9,7 @@ class statistic {
   final int serviceOncePrice;
   final int userSatis;
 
-  statistic({
+  Statistic({
     required this.userId,
     required this.appName,
     required this.appCategory,
@@ -18,13 +18,12 @@ class statistic {
     required this.userSatis,
   });
 
-  /// JSON (Map<String, dynamic>)으로부터 ServiceStatistic 객체를 생성합니다.
-  factory statistic.fromJson(Map<String, dynamic> json) {
-    return statistic(
+  /// JSON (Map<String, dynamic>)으로부터 statistic 객체를 생성합니다.
+  factory Statistic.fromJson(Map<String, dynamic> json) {
+    return Statistic(
       userId: json['user_id'] as String,
       appName: json['app_name'] as String,
       appCategory: json['app_category'] as String,
-      // API 응답의 타입이 확실하지 않다면 .toInt() 또는 안전한 파싱 로직을 추가합니다.
       serviceMonthlyPrice: json['service_monthly_price'] as int,
       serviceOncePrice: json['service_once_price'] as int,
       userSatis: json['user_satis'] as int,
