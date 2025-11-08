@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:poc_app_usage/utils/logger.dart';
 import 'package:poc_app_usage/screens/signup_screen.dart';
 import 'package:poc_app_usage/widgets/custom_text_field.dart';
 import 'package:poc_app_usage/screens/main_screen.dart'; // (나중에 만들 메인 대시보드 화면)
@@ -35,7 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    print("로그인 시도: 이메일=$email, 비밀번호=$password");
+    logger.i("로그인 시도: 이메일=$email, 비밀번호=$password");
     // 실제 앱에서는 API 호출 결과에 따라 이동합니다.
     Navigator.pushReplacement(
       context,
@@ -143,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Center(
                 child: TextButton(
                   onPressed: () {
-                    print('비밀번호 찾기');
+                    logger.i('비밀번호 찾기');
                     // 비밀번호 찾기 화면으로 이동 (나중에 구현)
                   },
                   child: const Text(

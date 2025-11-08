@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http; // pubspec.yaml 확인 후 추가 필요
 import 'dart:convert';
-import '../statistic.dart'; // 모델 클래스 위치에 따라 경로 수정 필요
+import 'package:poc_app_usage/utils/logger.dart';
+import '../bar_statistic.dart'; // 모델 클래스 위치에 따라 경로 수정 필요
 
 // 이 파일은 service/service_statistic_service.dart에 위치한다고 가정합니다.
 class StatisticService {
@@ -40,7 +41,7 @@ class StatisticService {
       }
     } catch (e) {
       // 3. 통신 오류, 파싱 오류 등 예외 처리
-      print('데이터를 불러오는 중 오류 발생: $e');
+      logger.i('데이터를 불러오는 중 오류 발생: $e');
       // 호출한 UI 위젯에서 처리할 수 있도록 예외를 다시 던집니다.
       rethrow; 
     }

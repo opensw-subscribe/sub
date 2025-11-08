@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 /// 원형 그래프 데이터 항목을 나타내는 모델 클래스
 class CircleGraphData {
   final String userId;
@@ -12,7 +10,7 @@ class CircleGraphData {
     required this.serviceMonthlyPrice,
   });
 
-  /// JSON (Map<String, dynamic>)으로부터 CircleGraphData 객체를 생성
+  /// JSON (Map)으로부터 CircleGraphData 객체를 생성
   factory CircleGraphData.fromJson(Map<String, dynamic> json) {
     return CircleGraphData(
       userId: json['user_id'] as String,

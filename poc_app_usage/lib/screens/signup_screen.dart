@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:poc_app_usage/utils/logger.dart';
 import 'package:poc_app_usage/widgets/custom_text_field.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -72,7 +73,7 @@ class _SignupScreenState extends State<SignupScreen> {
     //
     // signupApi();
 
-    print("회원가입 시도: 이름=$name, 아이디=$id, 비밀번호=$password");
+    logger.i("회원가입 시도: 이름=$name, 아이디=$id, 비밀번호=$password");
     // 임시로 회원가입 성공 처리
     Navigator.pop(context);
   }
