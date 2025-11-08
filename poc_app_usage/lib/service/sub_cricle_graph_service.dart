@@ -1,8 +1,9 @@
 import 'package:http/http.dart' as http;
+import 'package:poc_app_usage/utils/logger.dart';
 import 'dart:convert';
 
 // 모델 클래스 import. 실제 파일 구조에 맞게 경로 수정 필요
-import '../CircleGraphData.dart'; // 예시: lib/service 폴더에서 lib/circle_graph_data.dart를 가져오는 경우
+import '../circle_graph_data.dart'; // 예시: lib/service 폴더에서 lib/circle_graph_data.dart를 가져오는 경우
 
 class SubCircleGraphService {
   // 실제 API 엔드포인트
@@ -36,7 +37,7 @@ class SubCircleGraphService {
       }
     } catch (e) {
       // 3. 통신 오류, 파싱 오류 등 예외 처리
-      print('원형 그래프 데이터를 불러오는 중 오류 발생: $e');
+      logger.i('원형 그래프 데이터를 불러오는 중 오류 발생: $e');
       rethrow; 
     }
   }
