@@ -37,7 +37,7 @@ class SubCircleGraphService {
       }
     } catch (e) {
       // 3. 통신 오류, 파싱 오류 등 예외 처리
-      logger.i('원형 그래프 데이터를 불러오는 중 오류 발생: $e');
+      logger.e('원형 그래프 데이터를 불러오는 중 오류 발생: $e');
       rethrow; 
     }
   }
