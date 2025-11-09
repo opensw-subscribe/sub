@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:app_usage/app_usage.dart';
-import 'package:app_settings/app_settings.dart';
+import 'package:android_intent_plus/android_intent.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:poc_app_usage/screens/main_screen.dart';
 
@@ -81,8 +81,20 @@ class _PermissionScreenState extends State<PermissionScreen> with WidgetsBinding
       return;
     }
 
-    // [!] 'app_settings'를 이용해 설정 화면으로 직접 이동
-    await AppSettings.openAppSettings();
+    // [!] Android의 "사용 정보 접근" 설정 화면으로 직접 이동
+    // 이 화면에서 사용자가 바로 토글로 권한을 켤 수 있습니다
+    try {
+      const AndroidIntent intent = AndroidIntent(
+        action: 'android.settings.USAGE_ACCESS_SETTINGS',
+      );
+      await intent.launch();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('설정 화면을 열 수 없습니다: $e')),
+        );
+      }
+    }
 
     setState(() { _isRequesting = false; });
   }
