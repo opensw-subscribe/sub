@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http; // http 패키지
 import 'dart:convert';
 import 'package:poc_app_usage/utils/logger.dart'; // logger 사용을 위해 import
 import '../service/sub_whatif_service.dart';
-import '../what-if_data.dart'; // Statistic 모델
+import '../datas/what-if_data.dart'; // Statistic 모델
 
 class SubWhatIfScreen extends StatefulWidget {
   // 🚨 1. 사용자 ID를 외부에서 필수로 받습니다.

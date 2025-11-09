@@ -3,7 +3,7 @@ import 'package:poc_app_usage/utils/logger.dart';
 import 'dart:convert';
 
 // 모델 클래스 import. 실제 파일 구조에 맞게 경로 수정 필요
-import '../circle_graph_data.dart'; // 예시: lib/service 폴더에서 lib/circle_graph_data.dart를 가져오는 경우
+import '../datas/circle_graph_data.dart'; // 예시: lib/service 폴더에서 lib/circle_graph_data.dart를 가져오는 경우
 
 class SubCircleGraphService {
   // 실제 API 엔드포인트

@@ -1,7 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:poc_app_usage/utils/logger.dart';
-import '../bar_graph_data.dart'; // 모델 클래스 위치에 따라 경로 수정 필요
+import '../datas/bar_graph_data.dart'; // 모델 클래스 위치에 따라 경로 수정 필요
 
 // 이 파일은 service/service_statistic_service.dart에 위치한다고 가정
 class StatisticService {

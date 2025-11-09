@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../bar_graph_data.dart'; // Statistic 모델 import 필요
+import '../datas/bar_graph_data.dart'; // Statistic 모델 import 필요
 import '../service/sub_statistic_service.dart'; // StatisticService import 필요
 
 class SubChartScreen extends StatefulWidget {
