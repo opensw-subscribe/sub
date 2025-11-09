@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:app_usage/app_usage.dart';
 import 'package:app_settings/app_settings.dart';
-import 'package:poc_app_usage/screens/main_screen.dart'; 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:poc_app_usage/screens/main_screen.dart';
 
 class PermissionScreen extends StatefulWidget {
   const PermissionScreen({super.key});

@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:poc_app_usage/screens/permission_screen.dart';
 import 'package:poc_app_usage/widgets/custom_text_field.dart';
+import 'package:poc_app_usage/service/auth_service.dart';
+import 'package:poc_app_usage/screens/login_screen.dart';
+// import 'package:poc_app_usage/service/dummy_auth_service.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // 토큰 저장용
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -13,12 +18,15 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _idController = TextEditingController(); // 아이디로 사용
   final TextEditingController _passwordController = TextEditingController();
 
-  // 입력 에러 표시용 상태
   bool _nameError = false;
   bool _idError = false;
   bool _passwordError = false;
+  bool _isLoading = false;
+  String? _errorMsg;
 
-  void _signup() {
+  final AuthService _authService = AuthService();
+
+  Future<void> _signup() async {
     final String name = _nameController.text.trim();
     final String id = _idController.text.trim();
     final String password = _passwordController.text;
@@ -26,55 +34,51 @@ class _SignupScreenState extends State<SignupScreen> {
     final bool nameEmpty = name.isEmpty;
     final bool idEmpty = id.isEmpty;
     final bool passwordEmpty = password.isEmpty;
+    final bool nameTooLong = name.length > 5; 
 
-    if (nameEmpty || idEmpty || passwordEmpty) {
+    if (nameEmpty || idEmpty || passwordEmpty || nameTooLong) {
       setState(() {
-        _nameError = nameEmpty;
+        _nameError = nameEmpty || nameTooLong;
         _idError = idEmpty;
         _passwordError = passwordEmpty;
+        _errorMsg = nameTooLong ? '닉네임은 5자 이하여야 합니다.' : null;
       });
       return;
     }
 
-    // =============================
-    // [API 명세 예시]
-    // POST /api/signup
-    // Body(JSON): { "name": string, "id": string, "password": string }
-    // Response: { "success": bool, "message": string }
-    // =============================
+    setState(() { _isLoading = true; _errorMsg = null; });
+    try {
+      // 회원가입
+      await _authService.signup(
+        username: name,
+        user_id: id,
+        password: password,
+      );
 
-    // [백엔드 연동 예시 - 실제 사용 시 주석 해제]
-    // import 'package:http/http.dart' as http;
-    // import 'dart:convert';
-    //
-    // Future<void> signupApi() async {
-    //   final response = await http.post(
-    //     Uri.parse('https://your-backend.com/api/signup'),
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: jsonEncode({
-    //       'name': name,
-    //       'id': id,
-    //       'password': password,
-    //     }),
-    //   );
-    //   if (response.statusCode == 200) {
-    //     final data = jsonDecode(response.body);
-    //     if (data['success']) {
-    //       // 회원가입 성공 처리
-    //       Navigator.pop(context);
-    //     } else {
-    //       // 실패 메시지 처리 (예: setState로 에러 표시)
-    //     }
-    //   } else {
-    //     // 네트워크 오류 처리
-    //   }
-    // }
-    //
-    // signupApi();
+      // 자동 로그인
+      final loginData = await _authService.login(
+        user_id: id,
+        password: password,
+      );
 
-    print("회원가입 시도: 이름=$name, 아이디=$id, 비밀번호=$password");
-    // 임시로 회원가입 성공 처리
-    Navigator.pop(context);
+      // 토큰 저장
+      final prefs = await SharedPreferences.getInstance();
+      if (loginData.containsKey('token')) {
+        await prefs.setString('auth_token', loginData['token']);
+      }
+
+      // PermissionScreen으로 이동
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const PermissionScreen()),
+        );
+      }
+    } catch (e) {
+      setState(() { _errorMsg = e.toString(); });
+    } finally {
+      setState(() { _isLoading = false; });
+    }
   }
 
   @override
@@ -92,19 +96,14 @@ class _SignupScreenState extends State<SignupScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
-            // 자식 위젯들을 가로로 꽉 채우도록 변경
             crossAxisAlignment: CrossAxisAlignment.stretch, 
             children: [
-              // 상단 여백
               const SizedBox(height: 64), 
-              
-              // 회원가입 제목과 로그인 버튼 (중앙 정렬된 회원가입, 오른쪽에 로그인)
               SizedBox(
-                height: 40, // Stack의 높이 지정
+                height: 40,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    // 중앙에 "회원가입" 제목
                     const Text(
                       '회원가입',
                       style: TextStyle(
@@ -113,12 +112,14 @@ class _SignupScreenState extends State<SignupScreen> {
                         color: Colors.black,
                       ),
                     ),
-                    // 오른쪽에 "로그인" 버튼
                     Positioned(
                       right: 0,
                       child: TextButton(
                         onPressed: () {
-                          Navigator.pop(context); // 로그인 화면으로 돌아가기
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LoginScreen()),
+                          );
                         },
                         child: Text(
                           '로그인',
@@ -134,26 +135,22 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-
-              // 이름 입력창
               CustomTextField(
                 key: ValueKey('name_${_nameError.toString()}'),
                 controller: _nameController,
-                hintText: '이름',
+                hintText: '닉네임(5자이하)',
                 showError: _nameError,
                 onChanged: (v) {
-                  if (_nameError && v.isNotEmpty) {
+                  if (_nameError && v.isNotEmpty && v.length <= 5) {
                     setState(() => _nameError = false);
                   }
                 },
               ),
               const SizedBox(height: 16),
-
-              // 아이디 입력창
               CustomTextField(
                 key: ValueKey('id_${_idError.toString()}'),
                 controller: _idController,
-                hintText: '아이디',
+                hintText: '이메일',
                 showError: _idError,
                 onChanged: (v) {
                   if (_idError && v.isNotEmpty) {
@@ -162,8 +159,6 @@ class _SignupScreenState extends State<SignupScreen> {
                 },
               ),
               const SizedBox(height: 16),
-
-              // 비밀번호 입력창
               CustomTextField(
                 key: ValueKey('pw_${_passwordError.toString()}'),
                 controller: _passwordController,
@@ -177,13 +172,17 @@ class _SignupScreenState extends State<SignupScreen> {
                 },
               ),
               const SizedBox(height: 32),
-
-              // 회원가입 버튼
+              if (_errorMsg != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Text(_errorMsg!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+                ),
               ElevatedButton(
-                onPressed: _signup,
-                child: const Text('회원가입'),
+                onPressed: _isLoading ? null : _signup,
+                child: _isLoading
+                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('회원가입'),
               ),
-
               const Spacer(),
             ],
           ),
