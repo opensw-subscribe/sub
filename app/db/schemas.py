@@ -3,11 +3,13 @@ from typing import Optional
 
 # User
 class UserCreate(BaseModel):
-    name: str
+    email: str
+    user_name: str
 
 class UserOut(BaseModel):
     user_id: str
-    name: str
+    email: str
+    user_name: str
 
     class Config:
         orm_mode = True
@@ -33,8 +35,20 @@ class SubscriptionBase(BaseModel):
             orm_mode = True
             fields = {"sub_id": "id"}
             
-class SubscriptionCreate(SubscriptionBase):
-    pass
+class SubscriptionCreate(BaseModel):
+    app_name: str
+    category_id: int
+    service_monthly_price: float
+    service_once_price: Optional[float] = 0
+    service_usage_time: int
+    service_usage: int
+    weekly_usage_hours: Optional[float] = 0
+    user_satis: int
+    is_active: Optional[bool] = True
+
+    class Config:
+        orm_mode = True
+
 
 class SubscriptionUpdate(BaseModel):
     app_name: Optional[str] = None

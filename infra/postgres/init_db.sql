@@ -2,7 +2,8 @@
 -- 1. users (사용자)
 CREATE TABLE users (
     user_id TEXT PRIMARY KEY,                       -- Firebase UID
-    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,             -- 이메일 저장
+    user_name VARCHAR(100) NOT NULL,                -- 닉네임
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     last_login_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );

@@ -4,12 +4,16 @@ from datetime import datetime
 
 Base = declarative_base()
 
+
+Base = declarative_base()
+
 class User(Base):
     __tablename__ = "users"
 
     firebase_uid = Column(String, unique=True, index=True, nullable=False)
-    user_id = Column(String, primary_key=True, index=True)
-    name = Column(String(100), nullable=False)
+    user_id = Column(String, primary_key=True, index=True)  # Firebase UID
+    email = Column(String, unique=True, nullable=False)     # 추가
+    user_name = Column(String(100), nullable=False)         # name → user_name
 
     created_at = Column(DateTime, default=datetime.utcnow)
     last_login_at = Column(DateTime, default=datetime.utcnow)

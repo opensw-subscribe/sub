@@ -24,7 +24,8 @@ def create_user(data: schemas.UserCreate, user=Depends(firebase_auth), db: Sessi
     new_user = models.User(
         firebase_uid=user["uid"],
         user_id=user["uid"],
-        name=data.name
+        email=user["email"],
+        user_name=data.user_name
     )
     db.add(new_user)
     db.commit()
