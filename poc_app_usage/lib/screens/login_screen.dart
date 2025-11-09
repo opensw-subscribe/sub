@@ -20,14 +20,17 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _passwordError = false;
   bool _isLoading = false;
   String? _errorMsg;
-
+  
+  // final AuthService _authService = AuthService();
+  
+  // 더미 인증 서비스 사용
   final DummyAuthService _authService = DummyAuthService();
 
   @override
   void initState() {
     super.initState();
-    _authService.addDummyUser(); // 테스트용 더미 유저 등록
-  }
+    _authService.addDummyUser(); 
+  } // 여기 까지 테스트용 더미 유저 등록
 
   Future<void> _login() async {
     final String id = _idController.text.trim();
