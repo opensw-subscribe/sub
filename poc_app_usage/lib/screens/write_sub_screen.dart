@@ -165,7 +165,8 @@ class _WriteSubScreenState extends State<WriteSubScreen> {
                   backgroundColor: const Color(0xFF1A237E),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(20),
+                    side: const BorderSide(color: Colors.black12),
                   ),
                 ),
                 child: const Text(

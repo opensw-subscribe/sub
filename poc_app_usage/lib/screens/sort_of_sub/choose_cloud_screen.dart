@@ -39,7 +39,7 @@ class ChooseCloudScreen extends StatelessWidget {
                     ),
                   ),
                   const TextSpan(
-                    text: ' 님의\n 구독 서비스를 플랫폼을 알려주세요',
+                    text: ' 님의\n구독 서비스 플랫폼을 알려주세요',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -106,9 +106,10 @@ class ChooseCloudScreen extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 20),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
+                    borderRadius: BorderRadius.circular(15),
+                    side: const BorderSide(color: Colors.black12),
                   ),
                 ),
                 child: const Text(

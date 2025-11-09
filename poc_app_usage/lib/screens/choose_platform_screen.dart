@@ -75,7 +75,7 @@ class SubscriptionScreen extends StatelessWidget {
                               onPressed: () {
                                 final label = buttons[row * 2 + col];
 
-                                // 버튼별 페이지 이동
+                               
                                 if (label == 'OTT') {
                                   Navigator.push(
                                     context,
@@ -153,11 +153,11 @@ class SubscriptionScreen extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                padding: const EdgeInsets.symmetric(vertical: 20 ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15),side: const BorderSide(color: Colors.black12),),
               ),
               child: const Text('여기에 없어요 😢',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold )),
             ),
           ],
         ),
