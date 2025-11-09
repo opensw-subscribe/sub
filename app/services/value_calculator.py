@@ -20,8 +20,10 @@ def value_score_log(T: float, N: int, mode: str = "T") -> int:
 
 def cost_per_use(monthly_cost: float, T: float, N: int, alpha: float) -> float:
     """1회 이용 비용 계산"""
+    monthly_cost_f = float(monthly_cost)
+
     effective_uses = N + alpha * (T / 60)
-    return round(monthly_cost / effective_uses, 0) if effective_uses > 0 else monthly_cost
+    return round(monthly_cost_f / effective_uses, 0) if effective_uses > 0 else monthly_cost_f
 
 def recommend_alpha(category: str) -> float:
     """서비스 유형에 따라 알파 값 추천"""

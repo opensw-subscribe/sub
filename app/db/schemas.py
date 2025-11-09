@@ -3,7 +3,6 @@ from typing import Optional
 
 # User
 class UserCreate(BaseModel):
-    user_id: str
     name: str
 
 class UserOut(BaseModel):
@@ -19,7 +18,7 @@ class CategoryCreate(BaseModel):
 
 # Subscription
 class SubscriptionBase(BaseModel):
-    user_id: str
+    sub_id: int
     app_name: str
     category_id: int
     service_monthly_price: float
@@ -30,6 +29,10 @@ class SubscriptionBase(BaseModel):
     user_satis: int
     is_active: Optional[bool] = True
 
+    class Config:
+            orm_mode = True
+            fields = {"sub_id": "id"}
+            
 class SubscriptionCreate(SubscriptionBase):
     pass
 

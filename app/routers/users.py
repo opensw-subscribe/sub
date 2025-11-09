@@ -16,15 +16,16 @@ def get_db():
 
 # 사용자 생성 (Firebase UID 기반)
 @router.post("/", response_model=schemas.UserOut)
-def create_user(name: str, user=Depends(firebase_auth), db: Session = Depends(get_db)):
-    """
-    Firebase에서 이미 가입된 사용자를 서버 DB에 등록
-    """
+def create_user(data: schemas.UserCreate, user=Depends(firebase_auth), db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.firebase_uid == user["uid"]).first()
     if db_user:
         raise HTTPException(status_code=409, detail="User already exists")
 
-    new_user = models.User(firebase_uid=user["uid"], user_id=user["uid"], name=name)
+    new_user = models.User(
+        firebase_uid=user["uid"],
+        user_id=user["uid"],
+        name=data.name
+    )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
