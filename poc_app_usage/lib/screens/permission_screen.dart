@@ -82,7 +82,7 @@ class _PermissionScreenState extends State<PermissionScreen> with WidgetsBinding
     }
 
     // [!] 'app_settings'를 이용해 설정 화면으로 직접 이동
-    await AppSettings.openAppSettings(type: AppSettingsType.settings);
+    await AppSettings.openAppSettings();
 
     setState(() { _isRequesting = false; });
   }
