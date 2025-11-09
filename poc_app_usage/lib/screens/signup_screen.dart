@@ -3,7 +3,7 @@ import 'package:poc_app_usage/screens/permission_screen.dart';
 import 'package:poc_app_usage/widgets/custom_text_field.dart';
 import 'package:poc_app_usage/service/auth_service.dart';
 import 'package:poc_app_usage/screens/login_screen.dart';
-// import 'package:poc_app_usage/service/dummy_auth_service.dart';
+import 'package:poc_app_usage/service/dummy_auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // 토큰 저장용
 
 class SignupScreen extends StatefulWidget {
@@ -24,7 +24,13 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _isLoading = false;
   String? _errorMsg;
 
-  final AuthService _authService = AuthService();
+  final DummyAuthService _authService = DummyAuthService();
+
+  @override
+  void initState() {
+    super.initState();
+    _authService.addDummyUser(); // 테스트용 더미 유저 등록
+  }
 
   Future<void> _signup() async {
     final String name = _nameController.text.trim();
