@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:poc_app_usage/screens/request_sub_screen.dart';
+import 'package:poc_app_usage/screens/write_sub_screen.dart';
 class ChooseMusicScreen extends StatelessWidget {
   const ChooseMusicScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final List<String> buttons = ['멜론', '지니뮤직', '플로', '벅스', '스포티파이', '애플뮤직'];
+    final List<String> buttons = ['멜론', '지니뮤직', 'FLO', '벅스', '스포티파이', '애플뮤직'];
 
     return Scaffold(
       appBar: AppBar(
@@ -51,7 +51,7 @@ class ChooseMusicScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 65),
+            const SizedBox(height: 18),
 
             for (int row = 0; row < 3; row++) ...[
               Row(
@@ -87,7 +87,9 @@ class ChooseMusicScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                      ),
+                      )
+                    else
+                      const Expanded(child: SizedBox()),
                 ],
               ),
             ],
@@ -98,7 +100,7 @@ class ChooseMusicScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const RequestSubScreen()),
+                    MaterialPageRoute(builder: (context) => const WriteSubScreen()),
                   );
                 },
                 style: ElevatedButton.styleFrom(

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:poc_app_usage/screens/request_sub_screen.dart';
-class ChooseShoppingScreen extends StatelessWidget {
-  const ChooseShoppingScreen({super.key});
+import 'package:poc_app_usage/screens/write_sub_screen.dart';
+class ChooseLifestyleScreen extends StatelessWidget {
+  const ChooseLifestyleScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final List<String> buttons = ['쿠팡와우', '배민클럽', 'SSG 멤버십', '네이버플러스 멤버십', '마켓컬리 컬리패스', '스타벅스 버디패스'];
+    final List<String> buttons = ['쿠팡와우', '배민클럽', 'SSG 멤버십', '네이버플러스 멤버십', '마켓컬리 컬리패스'];
 
     return Scaffold(
       appBar: AppBar(
@@ -51,7 +51,7 @@ class ChooseShoppingScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 65),
+            const SizedBox(height: 18),
 
             for (int row = 0; row < 3; row++) ...[
               Row(
@@ -87,10 +87,13 @@ class ChooseShoppingScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                      ),
+                      )
+                    else
+                      const Expanded(child: SizedBox()),
                 ],
               ),
             ],
+
 
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -98,7 +101,7 @@ class ChooseShoppingScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const RequestSubScreen()),
+                    MaterialPageRoute(builder: (context) => const WriteSubScreen()),
                   );
                 },
                 style: ElevatedButton.styleFrom(

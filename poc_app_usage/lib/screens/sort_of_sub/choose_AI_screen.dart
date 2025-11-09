@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:poc_app_usage/screens/request_sub_screen.dart';
+import 'package:poc_app_usage/screens/write_sub_screen.dart';
 class ChooseAIScreen extends StatelessWidget {
   const ChooseAIScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final List<String> buttons = ['chat GPT', 'Claude', 'GitHub Copilot', 'Notion AI', 'MidJourney', 'Tabnine'];
+    final List<String> buttons = ['ChatGPT', 'Google Gemini', 'Notion AI', 'Canva'];
 
     return Scaffold(
       appBar: AppBar(
@@ -51,7 +51,7 @@ class ChooseAIScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 65),
+            const SizedBox(height: 18),
 
             for (int row = 0; row < 3; row++) ...[
               Row(
@@ -87,7 +87,9 @@ class ChooseAIScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                      ),
+                      )
+                    else
+                      const Expanded(child: SizedBox()),
                 ],
               ),
             ],
@@ -98,7 +100,7 @@ class ChooseAIScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const RequestSubScreen()),
+                    MaterialPageRoute(builder: (context) => const WriteSubScreen()),
                   );
                 },
                 style: ElevatedButton.styleFrom(

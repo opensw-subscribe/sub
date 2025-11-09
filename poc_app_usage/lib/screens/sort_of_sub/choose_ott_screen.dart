@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:poc_app_usage/screens/request_sub_screen.dart';
+import 'package:poc_app_usage/screens/write_sub_screen.dart';
 class ChooseOTTScreen extends StatelessWidget {
   const ChooseOTTScreen({super.key});
 
@@ -39,7 +39,7 @@ class ChooseOTTScreen extends StatelessWidget {
                     ),
                   ),
                   const TextSpan(
-                    text: ' 님의\nOTT 구독 서비스를 플랫폼을 알려주세요',
+                    text: ' 님의\n구독 서비스를 플랫폼을 알려주세요',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -51,7 +51,7 @@ class ChooseOTTScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 65),
+            const SizedBox(height: 18),
 
             for (int row = 0; row < 3; row++) ...[
               Row(
@@ -87,10 +87,13 @@ class ChooseOTTScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                      ),
+                      )
+                    else
+                      const Expanded(child: SizedBox()),
                 ],
               ),
             ],
+
 
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -98,7 +101,7 @@ class ChooseOTTScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const RequestSubScreen()),
+                    MaterialPageRoute(builder: (context) => const WriteSubScreen()),
                   );
                 },
                 style: ElevatedButton.styleFrom(

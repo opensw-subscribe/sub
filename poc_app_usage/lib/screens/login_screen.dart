@@ -165,3 +165,128 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
+
+// ✅ 예은 페이지 테스트용 임시 코드
+
+// import 'package:flutter/material.dart';
+// import 'package:poc_app_usage/screens/signup_screen.dart';
+// import 'package:poc_app_usage/widgets/custom_text_field.dart';
+// import 'package:poc_app_usage/screens/choose_platform_screen.dart'; 
+// class LoginScreen extends StatefulWidget {
+//   const LoginScreen({super.key});
+
+//   @override
+//   State<LoginScreen> createState() => _LoginScreenState();
+// }
+
+// class _LoginScreenState extends State<LoginScreen> {
+//   final TextEditingController _emailController = TextEditingController();
+//   final TextEditingController _passwordController = TextEditingController();
+
+//   bool _emailError = false;
+//   bool _passwordError = false;
+
+//   void _login() {
+//     // ✅ 임시 이동 코드
+//     Navigator.pushReplacement(
+//       context,
+//       MaterialPageRoute(builder: (context) => const SubscriptionScreen()),
+//     );
+//   }
+
+//   @override
+//   void dispose() {
+//     _emailController.dispose();
+//     _passwordController.dispose();
+//     super.dispose();
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       body: SafeArea(
+//         child: Padding(
+//           padding: const EdgeInsets.symmetric(horizontal: 24.0),
+//           child: Column(
+//             crossAxisAlignment: CrossAxisAlignment.stretch,
+//             children: [
+//               const SizedBox(height: 64),
+//               SizedBox(
+//                 height: 40,
+//                 child: Stack(
+//                   alignment: Alignment.center,
+//                   children: [
+//                     const Text(
+//                       '로그인',
+//                       style: TextStyle(
+//                         fontSize: 28,
+//                         fontWeight: FontWeight.bold,
+//                         color: Colors.black,
+//                       ),
+//                     ),
+//                     Positioned(
+//                       right: 0,
+//                       child: TextButton(
+//                         onPressed: () {
+//                           Navigator.push(
+//                             context,
+//                             MaterialPageRoute(
+//                                 builder: (context) => const SignupScreen()),
+//                           );
+//                         },
+//                         child: Text(
+//                           '회원가입',
+//                           style: TextStyle(
+//                             color: Theme.of(context).primaryColor,
+//                             fontSize: 16,
+//                             fontWeight: FontWeight.w600,
+//                           ),
+//                         ),
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//               const SizedBox(height: 32),
+//               CustomTextField(
+//                 controller: _emailController,
+//                 hintText: '아이디',
+//                 showError: _emailError,
+//               ),
+//               const SizedBox(height: 16),
+//               CustomTextField(
+//                 controller: _passwordController,
+//                 hintText: '비밀번호',
+//                 isPassword: true,
+//                 showError: _passwordError,
+//               ),
+//               const SizedBox(height: 32),
+//               ElevatedButton(
+//                 onPressed: _login, // ✅ 로그인 버튼 → 바로 이동
+//                 child: const Text('로그인'),
+//               ),
+//               const SizedBox(height: 16),
+//               Center(
+//                 child: TextButton(
+//                   onPressed: () {
+//                     print('비밀번호 찾기');
+//                   },
+//                   child: const Text(
+//                     '비밀번호를 잊으셨습니까?',
+//                     style: TextStyle(
+//                       color: Color(0xFF1A237E),
+//                       fontSize: 14,
+//                       fontWeight: FontWeight.w600,
+//                     ),
+//                   ),
+//                 ),
+//               ),
+//               const Spacer(),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }

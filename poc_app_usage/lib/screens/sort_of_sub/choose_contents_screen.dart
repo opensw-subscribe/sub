@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:poc_app_usage/screens/request_sub_screen.dart';
+import 'package:poc_app_usage/screens/write_sub_screen.dart';
 class ChooseContentsScreen extends StatelessWidget {
   const ChooseContentsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final List<String> buttons = ['유튜브 프리미엄', '카카오페이지', '네이버웹툰', 'Postype', 'PressReader', 'Audible'];
+    final List<String> buttons = ['유튜브 프리미엄', '네이버웹툰', 'Postype', '밀리의 서재','리디셀렉트'];
 
     return Scaffold(
       appBar: AppBar(
@@ -51,7 +51,7 @@ class ChooseContentsScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 65),
+            const SizedBox(height: 18),
 
             for (int row = 0; row < 3; row++) ...[
               Row(
@@ -87,7 +87,9 @@ class ChooseContentsScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                      ),
+                      )
+                    else
+                      const Expanded(child: SizedBox()),
                 ],
               ),
             ],
@@ -98,7 +100,7 @@ class ChooseContentsScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const RequestSubScreen()),
+                    MaterialPageRoute(builder: (context) => const WriteSubScreen()),
                   );
                 },
                 style: ElevatedButton.styleFrom(

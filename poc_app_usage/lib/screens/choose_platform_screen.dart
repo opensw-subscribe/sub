@@ -4,7 +4,8 @@ import 'package:poc_app_usage/screens/sort_of_sub/choose_music_screen.dart';
 import 'package:poc_app_usage/screens/sort_of_sub/choose_contents_screen.dart';
 import 'package:poc_app_usage/screens/sort_of_sub/choose_cloud_screen.dart';
 import 'package:poc_app_usage/screens/sort_of_sub/choose_ai_screen.dart';
-import 'package:poc_app_usage/screens/sort_of_sub/choose_shopping_screen.dart';
+import 'package:poc_app_usage/screens/sort_of_sub/choose_lifestyle_screen.dart';
+import 'package:poc_app_usage/screens/write_sub_screen.dart';
 
 void main() {
   runApp(const MaterialApp(
@@ -18,7 +19,7 @@ class SubscriptionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> buttons = ['OTT', 'Music', 'Contents', 'Cloud', 'AI', 'Shopping'];
+    final List<String> buttons = ['OTT', 'Music', 'Contents', 'Cloud', 'AI', 'LifeStyle'];
 
     return Scaffold(
       appBar: AppBar(
@@ -93,28 +94,28 @@ class SubscriptionScreen extends StatelessWidget {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => const ChooseContentsScreen(), // 나중에 ContentsScreen
+                                      builder: (context) => const ChooseContentsScreen(),
                                     ),
                                   );
                                 } else if (label == 'Cloud') {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => const ChooseCloudScreen(), // 나중에 CloudScreen
+                                      builder: (context) => const ChooseCloudScreen(),
                                     ),
                                   );
                                 } else if (label == 'AI') {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => const ChooseAIScreen(), // 나중에 AiScreen
+                                      builder: (context) => const ChooseAIScreen(),
                                     ),
                                   );
-                                } else if (label == 'Shopping') {
+                                } else if (label == 'LifeStyle') {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => const ChooseShoppingScreen(), // 나중에 ShoppingScreen
+                                      builder: (context) => const ChooseLifestyleScreen(),
                                     ),
                                   );
                                 }
@@ -145,7 +146,7 @@ class SubscriptionScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const Placeholder(), // 나중에 RequestSubScreen
+                    builder: (context) => const WriteSubScreen(), // 나중에 RequestSubScreen
                   ),
                 );
               },

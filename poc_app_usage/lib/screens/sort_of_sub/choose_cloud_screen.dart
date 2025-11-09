@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:poc_app_usage/screens/request_sub_screen.dart';
+import 'package:poc_app_usage/screens/write_sub_screen.dart';
 class ChooseCloudScreen extends StatelessWidget {
   const ChooseCloudScreen({super.key});
 
@@ -51,7 +51,7 @@ class ChooseCloudScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 65),
+            const SizedBox(height: 18),
 
             for (int row = 0; row < 3; row++) ...[
               Row(
@@ -87,7 +87,9 @@ class ChooseCloudScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                      ),
+                      )
+                    else
+                      const Expanded(child: SizedBox()),
                 ],
               ),
             ],
@@ -98,7 +100,7 @@ class ChooseCloudScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const RequestSubScreen()),
+                    MaterialPageRoute(builder: (context) => const WriteSubScreen()),
                   );
                 },
                 style: ElevatedButton.styleFrom(
