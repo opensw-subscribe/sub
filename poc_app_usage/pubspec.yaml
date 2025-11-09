@@ -39,6 +39,7 @@ dependencies:
   
   http: ^1.0.0 
   logger: ^2.6.2
+  fl_chart: ^0.40.0
 
 
 dev_dependencies:

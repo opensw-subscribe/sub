@@ -1,7 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:poc_app_usage/utils/logger.dart';
-import '../what-if_data.dart'; // 모델 클래스 위치에 따라 경로 수정 필요
+import '../datas/what-if_data.dart'; // 모델 클래스 위치에 따라 경로 수정 필요
 
 class WhatifService {
   // 실제 API 엔드포인트로 변경
