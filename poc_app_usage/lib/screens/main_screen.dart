@@ -8,7 +8,7 @@ class MainDashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Subscription Insight App',
-      // 🎨 앱의 전반적인 디자인 테마 설정
+      //앱의 전반적인 디자인 테마 설정
       theme: ThemeData(
         // Primary Color를 남색 계열로 설정하여 통일성을 줍니다.
         primaryColor: const Color(0xFF1A237E), 
