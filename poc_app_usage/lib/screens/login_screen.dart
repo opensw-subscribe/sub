@@ -3,7 +3,7 @@ import 'package:poc_app_usage/screens/signup_screen.dart';
 import 'package:poc_app_usage/widgets/custom_text_field.dart';
 import 'package:poc_app_usage/screens/main_screen.dart';
 import 'package:poc_app_usage/service/auth_service.dart';
-import 'package:poc_app_usage/service/dummy_auth_service.dart';
+// import 'package:poc_app_usage/service/dummy_auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,16 +21,16 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   String? _errorMsg;
   
-  // final AuthService _authService = AuthService();
+  final AuthService _authService = AuthService();
   
   // 더미 인증 서비스 사용
-  final DummyAuthService _authService = DummyAuthService();
+  // final DummyAuthService _authService = DummyAuthService();
 
-  @override
-  void initState() {
-    super.initState();
-    _authService.addDummyUser(); 
-  } // 여기 까지 테스트용 더미 유저 등록
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _authService.addDummyUser(); 
+  // } // 여기 까지 테스트용 더미 유저 등록
 
   Future<void> _login() async {
     final String id = _idController.text.trim();
