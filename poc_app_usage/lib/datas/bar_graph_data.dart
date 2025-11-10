@@ -1,6 +1,6 @@
 
 /// 구독 서비스 통계 데이터를 나타내는 모델 클래스
-class Statistic {
+class BarGraphData{
   final String userId;
   final String appName;
   final String appCategory;
@@ -8,7 +8,7 @@ class Statistic {
   final int serviceOncePrice;
   final int userSatis;
 
-  Statistic({
+  BarGraphData({
     required this.userId,
     required this.appName,
     required this.appCategory,
@@ -18,8 +18,8 @@ class Statistic {
   });
 
   /// JSON (Map)으로부터 ServiceStatistic 객체를 생성합니다.
-  factory Statistic.fromJson(Map<String, dynamic> json) {
-    return Statistic(
+  factory BarGraphData.fromJson(Map<String, dynamic> json) {
+    return BarGraphData(
       userId: json['user_id'] as String,
       appName: json['app_name'] as String,
       appCategory: json['app_category'] as String,

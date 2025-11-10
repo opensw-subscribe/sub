@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../datas/bar_graph_data.dart'; // Statistic 모델 import 필요
-import '../service/sub_bar_graph_service.dart'; // StatisticService import 필요
+//import '../datas/bar_graph_data.dart'; // Statistic 모델 import 필요
+//import '../service/sub_bar_graph_service.dart'; // StatisticService import 필요
 
+/*
 class SubChartScreen extends StatefulWidget {
   final String userId; 
 
@@ -21,35 +22,174 @@ class _SubChartScreenState extends State<SubChartScreen> {
     super.initState();
     _statisticFuture = _service.fetchStatistics(widget.userId);
 }
+*/
 
-  // -------------------------
-  // UI 구성 요소: 별점 위젯 (Chart Mode 전용)
-  // -------------------------
-  Widget _buildStarRating(int rating) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(5, (index) {
-        return Icon(
-          index < rating ? Icons.star : Icons.star_border,
-          color: index < rating ? Colors.amber : Colors.grey[300],
-          size: 20,
-        );
-      }),
+import 'package:flutter/material.dart';
+import 'dart:math';
+
+class BarGraphData {
+  final String userId;
+  final String appName;
+  final String appCategory;
+  final int serviceMonthlyPrice;
+  final int serviceOncePrice;
+  final int userSatis;
+
+  BarGraphData({
+    required this.userId,
+    required this.appName,
+    required this.appCategory,
+    required this.serviceMonthlyPrice,
+    required this.serviceOncePrice,
+    required this.userSatis,
+  });
+
+  /// JSON (Map)으로부터 ServiceStatistic 객체를 생성합니다.
+  factory BarGraphData.mock(Map<String, dynamic> json) {
+    return BarGraphData(
+      userId: json['user_id'] as String,
+      appName: json['app_name'] as String,
+      appCategory: json['app_category'] as String,
+      // API 응답의 타입이 확실하지 않다면 .toInt() 또는 안전한 파싱 로직을 추가합니다.
+      serviceMonthlyPrice: json['service_monthly_price'] as int,
+      serviceOncePrice: json['service_once_price'] as int,
+      userSatis: json['user_satis'] as int,
     );
   }
-  
+}
+
+class BarGraphDataService {
+  Future<List<BarGraphData>> fetchStatistics(String userId) async {
+    await Future.delayed(const Duration(milliseconds: 800));
+    final List<Map<String, dynamic>> mockData = [
+      {
+        "user_id": userId,
+        "app_name": "멜론",
+        "app_category": "music",
+        "service_monthly_price": 5900,
+        "service_once_price": 1500,
+        "user_satis": 5,
+      },
+      {
+        "user_id": userId,
+        "app_name": "넷플릭스",
+        "app_category": "ott",
+        "service_monthly_price": 12000,
+        "service_once_price": 1200,
+        "user_satis": 2,
+      },
+      {
+        "user_id": userId,
+        "app_name": "유튜브 프리미엄",
+        "app_category": "ott",
+        "service_monthly_price": 8900,
+        "service_once_price": 800,
+        "user_satis": 3,
+      },
+      {
+        "user_id": userId,
+        "app_name": "웨이브",
+        "app_category": "ott",
+        "service_monthly_price": 1900,
+        "service_once_price": 1980,
+        "user_satis": 4,
+      },
+    ];
+
+    return mockData.map((jsonItem) => BarGraphData.mock(jsonItem)).toList();
+  }
+}
+
+class SubBarGraphScreen extends StatefulWidget {
+  final String userId;
+
+  const SubBarGraphScreen({super.key, required this.userId});
+
+  @override
+  State<SubBarGraphScreen> createState() => _SubBarGraphScreenState();
+}
+
+// lib/screens/sub_bar_graph_screen.dart
+
+// ... (imports 및 BarGraphData 모델 정의)
+
+class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
+  // 💡 Statistic -> BarGraphDataService로 변경됨
+  final BarGraphDataService _service = BarGraphDataService();
+  late Future<List<BarGraphData>> _statisticFuture;
+  List<BarGraphData> _statistics = [];
+
+  // 막대 그래프와 목록에 사용될 일관된 색상 정의
+  final Color _oncePriceColor = Colors.teal.shade400; // 1회 비용/만족도 막대 (민트색)
+  final Color _monthlyPriceColor = Colors.blue.shade900; // 월 비용 막대 (네이비색)
+
+  late final List<Color> _listColors = [_monthlyPriceColor, _oncePriceColor];
+
+  @override
+  void initState() {
+    super.initState();
+    _statisticFuture = _service.fetchStatistics(widget.userId);
+  }
+
+  // -------------------------
+  // UI 구성 요소: 별점 위젯
+  // -------------------------
+  Widget _buildStarRating(int rating) {
+    const double iconSize = 20;
+    const Color fillColor = Colors.amber;
+    const Color borderColor = Colors.black;
+
+    return Row(
+    mainAxisSize: MainAxisSize.min,
+    children: List.generate(5, (index) {
+      return SizedBox(
+        width: iconSize,
+        height: iconSize,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // 1. 항상 배경/테두리 역할을 하는 빈 별 (검은색 테두리)
+            Icon(
+              Icons.star_border,
+              color: borderColor,
+              size: iconSize,
+            ),
+            
+            // 2. 평점보다 작거나 같을 때만 채워진 별을 그립니다.
+            if (index < rating)
+              Padding(
+                // 🚨 수정: 변경된 변수 이름 사용
+                padding: const EdgeInsets.all(1.5), 
+                child: Icon(
+                  Icons.star,
+                  color: fillColor,
+                  size: iconSize*0.7, 
+                ),
+              ),
+          ],
+        ),
+      );
+    }),
+  );
+  }
+
   // -------------------------
   // UI 구성 요소: 막대 그래프 Placeholder
   // -------------------------
   Widget _buildChartPlaceholder() {
-    // 만족도와 가격을 시각화한 막대 그래프 Placeholder (이미지 2aa498.png 참조)
     return Container(
       height: 180,
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), spreadRadius: 2, blurRadius: 5)],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 2,
+            blurRadius: 5,
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -59,59 +199,78 @@ class _SubChartScreenState extends State<SubChartScreen> {
     );
   }
 
-  // 개별 막대 위젯
-  Widget _buildBar(Statistic data) {
-    // 막대 높이: 만족도(1-5)를 기반으로 비율 계산
-    final double ratingFactor = data.userSatis / 5.0; 
+  // -------------------------
+  // 개별 막대 위젯 (월 비용/1회 비용을 다른 막대로 표현)
+  // -------------------------
+  Widget _buildBar(BarGraphData data) {
     const double maxHeight = 120.0;
-    final double ratingHeight = maxHeight * ratingFactor;
-    
-    // 가격을 기반으로 색상 분할 (Placeholder)
-    final Color color1 = Colors.teal.shade400; // 만족도 부분 색상
-    final Color color2 = Colors.blue.shade900; // 가격 부분 색상
-    
-    // 가격에 비례하여 막대 높이 계산 (여기서는 만족도와 섞어서 임시 시각화)
-    final double priceFactor = data.serviceMonthlyPrice / 20000; // 최대 가격 20000원 가정
-    final double priceHeight = maxHeight * priceFactor * 0.5; // 절반 비율 적용
+
+    // 월 비용 (Monthly Price) - 네이비색 막대
+    // Mock 데이터에서 가장 높은 serviceMonthlyPrice인 12000.0을 기준으로 스케일링
+    const double maxMonthlyPrice = 12000.0;
+    final double monthlyPriceHeight =
+        maxHeight * (data.serviceMonthlyPrice / maxMonthlyPrice);
+
+    // 1회 비용 (Once Price) - 민트색 막대 (이미지의 '만족도' 막대로 사용됨)
+    // Mock 데이터에서 가장 높은 serviceOncePrice인 1980.0을 기준으로 스케일링
+    final double oncePriceHeight =
+        maxHeight * (data.serviceOncePrice / maxMonthlyPrice);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
           height: maxHeight,
-          width: 20,
-          child: Stack(
-            alignment: Alignment.bottomCenter,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              // 배경 (최대 높이)
-              Container(width: 20, height: maxHeight, color: Colors.grey[200]),
-              // 만족도 시각화 부분 (상단)
-              Positioned(
-                bottom: 0,
-                child: Container(
-                  width: 20, 
-                  height: ratingHeight, 
-                  decoration: BoxDecoration(
-                    color: color1, 
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(4))
-                  )
-                )
+              // 2. 월 비용 막대 (오른쪽, 네이비색)
+              _buildSingleBar(
+                height: monthlyPriceHeight,
+                color: _monthlyPriceColor, // 변수 사용
+                maxHeight: maxHeight,
               ),
-              // 가격 시각화 부분 (하단) - 만족도 막대 위에 겹쳐서 표시
-              Positioned(
-                bottom: 0,
-                child: Container(
-                  width: 20, 
-                  height: priceHeight, 
-                  color: color2, 
-                )
+
+              const SizedBox(width: 4),
+
+              // 1. 1회 비용 막대 (왼쪽, 민트색)
+              _buildSingleBar(
+                height: oncePriceHeight,
+                color: _oncePriceColor, // 변수 사용
+                maxHeight: maxHeight,
               ),
             ],
           ),
         ),
-        const SizedBox(height: 4),
-        // Item Name (X축 레이블)
-        Text(data.appName.substring(0, 4) + '.', style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+        // ... (Item Name (X축 레이블) 유지)
+      ],
+    );
+  }
+
+  // -------------------------
+  // 단일 막대 위젯 (재사용성 향상)
+  // -------------------------
+  Widget _buildSingleBar({
+    required double height,
+    required Color color,
+    required double maxHeight,
+    double width = 10.0,
+  }) {
+    return Stack(
+      alignment: Alignment.bottomCenter,
+      children: [
+        // 배경 (최대 높이)
+        Container(width: width, height: maxHeight, color: Colors.grey[200]),
+        // 실제 데이터 막대
+        Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+          ),
+        ),
       ],
     );
   }
@@ -119,42 +278,64 @@ class _SubChartScreenState extends State<SubChartScreen> {
   // -------------------------
   // UI 구성 요소: 목록 항목 위젯
   // -------------------------
-  Widget _buildListItem(Statistic data) {
-    final Color itemColor = data.appCategory == 'Music' ? Colors.blue[800]! : Colors.teal;
-    
-    // 🚨 수정: serviceMonthlyPrice만 사용합니다.
-    final String formattedPrice = data.serviceMonthlyPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},');
+  Widget _buildListItem(BarGraphData data) {
+    final int index = _statistics.indexOf(data);
+    //  목록 점 색상을 월 비용 막대의 색상으로 통일
+    final Color listColor = _listColors[index % _listColors.length];
+
+    final String formattedPrice = data.serviceMonthlyPrice
+        .toString()
+        .replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        );
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // 1. 색상 점 (월 비용 색상으로 통일)
           Container(
             width: 10,
             height: 10,
-            decoration: BoxDecoration(color: itemColor, shape: BoxShape.circle),
+            decoration: BoxDecoration(color: listColor, shape: BoxShape.circle),
           ),
           const SizedBox(width: 8),
-          
+
+          // 2. 앱 이름 (Expanded로 나머지 공간 모두 확보)
           Expanded(
             child: Text(data.appName, style: const TextStyle(fontSize: 16)),
           ),
-          
-          // 별점 표시
-          _buildStarRating(data.userSatis),
-          
-          const SizedBox(width: 24),
-          
-          // 월 비용 표시 (serviceMonthlyPrice)
-          Text(formattedPrice, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+
+          // 3. 별점 표시 (정렬을 위해 고정된 SizedBox 안에 넣습니다)
+          //  별점 너비를 고정하여 앱 이름 길이에 상관없이 정렬되도록 함 (대략적인 너비 120.0 사용)
+          SizedBox(
+            width: 120.0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end, // 오른쪽 정렬
+              children: [_buildStarRating(data.userSatis)],
+            ),
+          ),
+
+          const SizedBox(width: 30),
+
+          // 4. 월 비용 표시 (Text는 기본적으로 콘텐츠 크기만큼 공간 차지)
+          SizedBox(
+            width: 70,
+            child: Text(
+              formattedPrice,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
         ],
       ),
     );
   }
 
   // -------------------------
-  // UI 구성 요소: App Bar (Chart 모드 전용)
+  // UI 구성 요소: App Bar
   // -------------------------
   AppBar _buildAppBar() {
     return AppBar(
@@ -162,9 +343,7 @@ class _SubChartScreenState extends State<SubChartScreen> {
       centerTitle: true,
       leading: TextButton(
         onPressed: () {
-          // '설정' 화면으로 이동하거나 What-If 모드로 전환하는 로직
-          // MainDashboardScreen이 Stateful이라면 여기서 상태를 변경합니다.
-          Navigator.pop(context); // 임시로 현재 화면 닫기 (MainDashboardScreen으로 돌아감)
+          // Navigator.pop(context); // 임시로 현재 화면 닫기
         },
         child: const Text('설정', style: TextStyle(color: Colors.black)),
       ),
@@ -185,7 +364,7 @@ class _SubChartScreenState extends State<SubChartScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(),
-      body: FutureBuilder<List<Statistic>>(
+      body: FutureBuilder<List<BarGraphData>>(
         future: _statisticFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -196,7 +375,7 @@ class _SubChartScreenState extends State<SubChartScreen> {
           }
           if (snapshot.hasData) {
             _statistics = snapshot.data!;
-            
+
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -205,11 +384,14 @@ class _SubChartScreenState extends State<SubChartScreen> {
                   // 1. 막대 그래프 영역
                   _buildChartPlaceholder(),
                   const SizedBox(height: 24),
-                  
+
                   // 2. 목록 제목
-                  const Text('구독 서비스 목록', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text(
+                    '구독 서비스 목록',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 8),
-                  
+
                   // 3. 서비스 목록
                   ListView.builder(
                     physics: const NeverScrollableScrollPhysics(),
@@ -229,3 +411,6 @@ class _SubChartScreenState extends State<SubChartScreen> {
     );
   }
 }
+/*
+}
+*/

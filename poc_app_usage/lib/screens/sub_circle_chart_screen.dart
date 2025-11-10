@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../datas/circle_graph_data.dart';// Statistic 모델 import 필요
-import '../service/sub_cricle_graph_service.dart'; // StatisticService import 필요
+//import '../datas/circle_graph_data.dart';// CircleGraphData 모델 import 필요
+//import '../service/sub_cricle_graph_service.dart'; // CircleGraphService import 필요
 import 'dart:math';
 
 class CircleGraphData {
@@ -42,7 +42,6 @@ class CircleGraphService {
   }
 }
 //여기까지 임시 데이터 
-
 class SubCircleChartScreen extends StatefulWidget {
   final String userId;
 
