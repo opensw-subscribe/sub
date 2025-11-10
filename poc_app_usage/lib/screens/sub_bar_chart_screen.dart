@@ -2,28 +2,6 @@ import 'package:flutter/material.dart';
 //import '../datas/bar_graph_data.dart'; // Statistic 모델 import 필요
 //import '../service/sub_bar_graph_service.dart'; // StatisticService import 필요
 
-/*
-class SubChartScreen extends StatefulWidget {
-  final String userId; 
-
-  const SubChartScreen({super.key, required this.userId});
-
-  @override
-  State<SubChartScreen> createState() => _SubChartScreenState();
-}
-
-class _SubChartScreenState extends State<SubChartScreen> {
-  final StatisticService _service = StatisticService();
-  late Future<List<Statistic>> _statisticFuture;
-  List<Statistic> _statistics = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _statisticFuture = _service.fetchStatistics(widget.userId);
-}
-*/
-
 import 'package:flutter/material.dart';
 import 'dart:math';
 
@@ -99,6 +77,7 @@ class BarGraphDataService {
     return mockData.map((jsonItem) => BarGraphData.mock(jsonItem)).toList();
   }
 }
+//여기까지 임시 데이터
 
 class SubBarGraphScreen extends StatefulWidget {
   final String userId;
@@ -109,9 +88,6 @@ class SubBarGraphScreen extends StatefulWidget {
   State<SubBarGraphScreen> createState() => _SubBarGraphScreenState();
 }
 
-// lib/screens/sub_bar_graph_screen.dart
-
-// ... (imports 및 BarGraphData 모델 정의)
 
 class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
   // 💡 Statistic -> BarGraphDataService로 변경됨
