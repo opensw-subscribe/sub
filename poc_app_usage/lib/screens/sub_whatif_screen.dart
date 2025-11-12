@@ -28,7 +28,7 @@ class WhatifData {
       appName: json['app_name'] as String,
       appCategory: json['app_category'] ?? '미분류', // appCategory가 없을 경우 처리
       serviceMonthlyPrice: json['service_monthly_price'] as int,
-      // 🚨 임시 로직: 멜론만 초기 비활성화 상태로 설정하여 저축액을 보이게 함
+      // 임시 로직: 멜론만 초기 비활성화 상태로 설정하여 저축액을 보이게 함
       isActive: json['app_name'] != '멜론',
     );
   }
@@ -67,7 +67,7 @@ class _SubWhatIfScreenState extends State<SubWhatIfScreen> {
   late Future<List<WhatifData>> _statisticFuture;
   List<WhatifData> _statistics = [];
 
-  // 🚨 수정: initState에서 데이터를 요청하고 _statistics에 저장
+  // 수정: initState에서 데이터를 요청하고 _statistics에 저장
   @override
   void initState() {
     super.initState();
@@ -86,7 +86,7 @@ class _SubWhatIfScreenState extends State<SubWhatIfScreen> {
         .fold(0, (sum, s) => sum + s.serviceMonthlyPrice);
   }
 
-  // 🚨 추가: 6개월 예상 저축액 계산
+  // 추가: 6개월 예상 저축액 계산
   int get _sixMonthSavings => _totalSavings * 6;
 
   AppBar _buildAppBar() {
@@ -123,7 +123,7 @@ class _SubWhatIfScreenState extends State<SubWhatIfScreen> {
   // UI 구성 요소: 목록 항목 위젯 (색상 로직 수정)
   // -------------------------
   Widget _buildListItem(WhatifData data) {
-    // 🚨 수정: isActive 상태에 따라 색상 지정
+    // 수정: isActive 상태에 따라 색상 지정
     final Color itemColor = data.isActive
         ? Colors
               .teal // 유지된 서비스 (민트)
