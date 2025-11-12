@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:poc_app_usage/screens/choose_fee_screen.dart';
 import 'package:poc_app_usage/screens/write_sub_screen.dart';
+
 class ChooseAIScreen extends StatelessWidget {
   const ChooseAIScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final List<String> buttons = ['ChatGPT', 'Google Gemini', 'Notion AI', 'Canva'];
+    final List<String> buttons = ['ChatGPT', 'Google Gemini', 'Notion', 'Canva'];
 
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
         title: const Text(
-          '구독서비스',
+          '구독 서비스',
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
@@ -39,7 +41,7 @@ class ChooseAIScreen extends StatelessWidget {
                     ),
                   ),
                   const TextSpan(
-                    text: ' 님의\n구독 서비스 플랫폼을 알려주세요',
+                    text: ' 님의\nAI 구독 플랫폼을 알려주세요',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -53,7 +55,7 @@ class ChooseAIScreen extends StatelessWidget {
 
             const SizedBox(height: 18),
 
-            for (int row = 0; row < 3; row++) ...[
+            for (int row = 0; row < 2; row++) ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -66,7 +68,80 @@ class ChooseAIScreen extends StatelessWidget {
                             aspectRatio: 1.7,
                             child: ElevatedButton(
                               onPressed: () {
-                                print('${buttons[row * 2 + col]} 선택됨');
+                                final selected = buttons[row * 2 + col];
+                                print('$selected 선택됨');
+
+                                switch (selected) {
+                                  case 'ChatGPT':
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const ChooseFeeScreen(
+                                          platformName: 'ChatGPT',
+                                          logoPath: 'assets/logo/chatgpt_logo.png',
+                                          feeList: [
+                                            'Plus (월 \$20)',
+                                            'Pro (월 \$200)',
+                                            'Business (월 \$30)',
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                    break;
+
+                                  case 'Google Gemini':
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const ChooseFeeScreen(
+                                          platformName: 'Google Gemini',
+                                          logoPath: 'assets/logo/gemini_logo.png',
+                                          feeList: [
+                                            'AI Pro (월 29,000원)',
+                                            'AI Ultra (월 360,000원)',
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                    break;
+
+                                  case 'Notion':
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const ChooseFeeScreen(
+                                          platformName: 'Notion',
+                                          logoPath: 'assets/logo/notion_logo.png',
+                                          feeList: [
+                                            'Plus (월 16,800원)',
+                                            'Business (월 36,000원)',
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                    break;
+
+                                  case 'Canva':
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const ChooseFeeScreen(
+                                          platformName: 'Canva',
+                                          logoPath: 'assets/logo/canva_logo.png',
+                                          feeList: [
+                                            'Pro (월 9,900원)',
+                                            'Business (월 12,900원)',
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                    break;
+
+                                  default:
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('$selected 화면은 아직 준비 중입니다.')),
+                                    );
+                                }
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
@@ -100,7 +175,9 @@ class ChooseAIScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const WriteSubScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const WriteSubScreen(),
+                    ),
                   );
                 },
                 style: ElevatedButton.styleFrom(

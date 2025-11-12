@@ -10,12 +10,12 @@ import 'package:poc_app_usage/screens/write_sub_screen.dart';
 void main() {
   runApp(const MaterialApp(
     debugShowCheckedModeBanner: false,
-    home: SubscriptionScreen(),
+    home: ChoosePlatformScreen(),
   ));
 }
 
-class SubscriptionScreen extends StatelessWidget {
-  const SubscriptionScreen({super.key});
+class ChoosePlatformScreen extends StatelessWidget {
+  const ChoosePlatformScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,7 @@ class SubscriptionScreen extends StatelessWidget {
       appBar: AppBar(
         centerTitle: true,
         title: const Text(
-          '구독서비스',
+          '구독 서비스',
           style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         leading: BackButton(onPressed: () => Navigator.pop(context)),
@@ -97,11 +97,19 @@ class SubscriptionScreen extends StatelessWidget {
                                       builder: (context) => const ChooseContentsScreen(),
                                     ),
                                   );
-                                } else if (label == 'Cloud') {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const ChooseCloudScreen(),
+                                // } else if (label == 'Cloud') {
+                                //   Navigator.push(
+                                //     context,
+                                //     MaterialPageRoute(
+                                //       builder: (context) => const ChooseCloudScreen(),
+                                //     ),
+                                //   );
+
+                                }else if (label == 'Cloud') {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Cloud 화면은 아직 준비 중입니다.'),
+                                      duration: Duration(seconds: 2),
                                     ),
                                   );
                                 } else if (label == 'AI') {

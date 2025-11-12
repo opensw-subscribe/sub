@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class WriteSubScreen extends StatefulWidget {
   const WriteSubScreen({super.key});
@@ -9,10 +10,10 @@ class WriteSubScreen extends StatefulWidget {
 
 class _WriteSubScreenState extends State<WriteSubScreen> {
   final TextEditingController appNameController = TextEditingController();
-
+  final TextEditingController feeController = TextEditingController();
 
   String? selectedCategory;
-
+  String selectedCurrency = '₩'; // 기본 통화
 
   final List<String> categories = [
     'OTT',
@@ -24,7 +25,6 @@ class _WriteSubScreenState extends State<WriteSubScreen> {
     '기타',
   ];
 
- 
   void _showCategoryPicker() {
     showModalBottomSheet(
       context: context,
@@ -62,15 +62,17 @@ class _WriteSubScreenState extends State<WriteSubScreen> {
   void _submitData() {
     final appName = appNameController.text.trim();
     final category = selectedCategory;
+    final fee = feeController.text.trim();
 
-    if (appName.isEmpty || category == null) {
+    if (appName.isEmpty || category == null || fee.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('앱 이름과 카테고리를 모두 입력해주세요.')),
+        const SnackBar(content: Text('앱 이름, 요금제, 카테고리를 모두 입력해주세요.')),
       );
       return;
     }
 
     print('입력된 앱 이름: $appName');
+    print('입력된 요금제: $fee $selectedCurrency');
     print('선택된 카테고리: $category');
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -78,8 +80,10 @@ class _WriteSubScreenState extends State<WriteSubScreen> {
     );
 
     appNameController.clear();
+    feeController.clear();
     setState(() {
       selectedCategory = null;
+      selectedCurrency = '₩';
     });
   }
 
@@ -103,6 +107,7 @@ class _WriteSubScreenState extends State<WriteSubScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 앱 이름 입력
             const Text(
               '구독한 서비스',
               style: TextStyle(
@@ -120,8 +125,52 @@ class _WriteSubScreenState extends State<WriteSubScreen> {
                 ),
               ),
             ),
+
             const SizedBox(height: 20),
 
+            // 요금제 입력
+            const Text(
+              '요금제',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: feeController,
+                    keyboardType: TextInputType.number,
+                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: InputDecoration(
+                      hintText: '금액 입력',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                DropdownButton<String>(
+                  value: selectedCurrency,
+                  items: const [
+                    DropdownMenuItem(value: '₩', child: Text('₩')),
+                    DropdownMenuItem(value: '\$', child: Text('\$')),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      selectedCurrency = value!;
+                    });
+                  },
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // 카테고리 선택
             const Text(
               '카테고리',
               style: TextStyle(
@@ -133,12 +182,10 @@ class _WriteSubScreenState extends State<WriteSubScreen> {
 
             GestureDetector(
               onTap: _showCategoryPicker,
-              child: SizedBox(
-              height: 56,
-              width: double.infinity,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                height: 56,
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.black38),
                   borderRadius: BorderRadius.circular(12),
@@ -147,16 +194,15 @@ class _WriteSubScreenState extends State<WriteSubScreen> {
                   selectedCategory ?? '카테고리를 선택하세요',
                   style: TextStyle(
                     fontSize: 16,
-                    color: selectedCategory == null
-                        ? Colors.grey
-                        : Colors.black,
+                    color: selectedCategory == null ? Colors.grey : Colors.black,
                   ),
                 ),
               ),
             ),
-            ),
+
             const SizedBox(height: 32),
 
+            // 저장 버튼
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -170,7 +216,7 @@ class _WriteSubScreenState extends State<WriteSubScreen> {
                   ),
                 ),
                 child: const Text(
-                  '저장하기',
+                  '추가하기',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,

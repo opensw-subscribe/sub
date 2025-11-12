@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:poc_app_usage/screens/choose_fee_screen.dart';
 import 'package:poc_app_usage/screens/write_sub_screen.dart';
+
 class ChooseLifestyleScreen extends StatelessWidget {
   const ChooseLifestyleScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final List<String> buttons = ['쿠팡와우', '배민클럽', 'SSG 멤버십', '네이버플러스 멤버십', '마켓컬리 컬리패스'];
+    final List<String> buttons = ['쿠팡', '배달의 민족', '요기요'];
 
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
         title: const Text(
-          'OTT 구독서비스',
+          '구독 서비스',
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
@@ -39,7 +41,7 @@ class ChooseLifestyleScreen extends StatelessWidget {
                     ),
                   ),
                   const TextSpan(
-                    text: ' 님의\n구독 서비스 플랫폼을 알려주세요',
+                    text: ' 님의\n생활 구독 플랫폼을 알려주세요',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -53,7 +55,7 @@ class ChooseLifestyleScreen extends StatelessWidget {
 
             const SizedBox(height: 18),
 
-            for (int row = 0; row < 3; row++) ...[
+            for (int row = 0; row < 2; row++) ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -66,7 +68,61 @@ class ChooseLifestyleScreen extends StatelessWidget {
                             aspectRatio: 1.7,
                             child: ElevatedButton(
                               onPressed: () {
-                                print('${buttons[row * 2 + col]} 선택됨');
+                                final selected = buttons[row * 2 + col];
+                                print('$selected 선택됨');
+
+                                switch (selected) {
+                                  case '쿠팡':
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const ChooseFeeScreen(
+                                          platformName: '쿠팡',
+                                          logoPath: 'assets/logo/coupang_logo.png',
+                                          feeList: ['쿠팡와우 (월 7,890원)'],
+                                        ),
+                                      ),
+                                    );
+                                    break;
+
+                                  case '배달의 민족':
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const ChooseFeeScreen(
+                                          platformName: '배달의 민족',
+                                          logoPath: 'assets/logo/baemin_logo.png',
+                                          feeList: [
+                                            '배민클럽 (월 1,990원)',
+                                            '배민클럽 + 티빙 (월 5,490원)',
+                                            '배민클럽 + 유튜브 프리미엄 (월 13,990원)',
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                    break;
+
+                                  case '요기요':
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const ChooseFeeScreen(
+                                          platformName: '요기요',
+                                          logoPath: 'assets/logo/yogiyo_logo.png',
+                                          feeList: [
+                                            '요기패스 (월 9,900원)',
+                                            '요기패스X (월 2,900원)',
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                    break;
+
+                                  default:
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('$selected 화면은 아직 준비 중입니다.')),
+                                    );
+                                }
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
@@ -93,7 +149,6 @@ class ChooseLifestyleScreen extends StatelessWidget {
                 ],
               ),
             ],
-
 
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12.0),
