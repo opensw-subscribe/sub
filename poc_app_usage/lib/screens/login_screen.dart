@@ -179,3 +179,139 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
+//예은 테스트용 임시 코드 - 나중에 지워도 됨
+
+// import 'package:flutter/material.dart';
+// import 'package:poc_app_usage/screens/signup_screen.dart';
+// import 'package:poc_app_usage/widgets/custom_text_field.dart';
+// import 'package:poc_app_usage/screens/choose_platform_screen.dart'; // ✅ 여기를 추가해야 함
+
+// class LoginScreen extends StatefulWidget {
+//   const LoginScreen({super.key});
+
+//   @override
+//   State<LoginScreen> createState() => _LoginScreenState();
+// }
+
+// class _LoginScreenState extends State<LoginScreen> {
+//   final TextEditingController _emailController = TextEditingController();
+//   final TextEditingController _passwordController = TextEditingController();
+
+//   bool _emailError = false;
+//   bool _passwordError = false;
+
+//   void _login() {
+//     final String email = _emailController.text.trim();
+//     final String password = _passwordController.text;
+
+//     print("로그인 시도: 이메일=$email, 비밀번호=$password");
+
+//     // ✅ 로그인 버튼 클릭 시 choose_platform_screen으로 이동
+//     Navigator.pushReplacement(
+//       context,
+//       MaterialPageRoute(
+//         builder: (context) => const ChoosePlatformScreen(),
+//       ),
+//     );
+//   }
+
+//   @override
+//   void dispose() {
+//     _emailController.dispose();
+//     _passwordController.dispose();
+//     super.dispose();
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       body: SafeArea(
+//         child: Padding(
+//           padding: const EdgeInsets.symmetric(horizontal: 24.0),
+//           child: Column(
+//             crossAxisAlignment: CrossAxisAlignment.stretch,
+//             children: [
+//               const SizedBox(height: 64),
+//               SizedBox(
+//                 height: 40,
+//                 child: Stack(
+//                   alignment: Alignment.center,
+//                   children: [
+//                     const Text(
+//                       '로그인',
+//                       style: TextStyle(
+//                         fontSize: 28,
+//                         fontWeight: FontWeight.bold,
+//                         color: Colors.black,
+//                       ),
+//                     ),
+//                     Positioned(
+//                       right: 0,
+//                       child: TextButton(
+//                         onPressed: () {
+//                           Navigator.push(
+//                             context,
+//                             MaterialPageRoute(builder: (context) => const SignupScreen()),
+//                           );
+//                         },
+//                         child: Text(
+//                           '회원가입',
+//                           style: TextStyle(
+//                             color: Theme.of(context).primaryColor,
+//                             fontSize: 16,
+//                             fontWeight: FontWeight.w600,
+//                           ),
+//                         ),
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//               const SizedBox(height: 32),
+
+//               CustomTextField(
+//                 controller: _emailController,
+//                 hintText: '아이디',
+//                 showError: _emailError,
+//               ),
+//               const SizedBox(height: 16),
+
+//               CustomTextField(
+//                 controller: _passwordController,
+//                 hintText: '비밀번호',
+//                 isPassword: true,
+//                 showError: _passwordError,
+//               ),
+//               const SizedBox(height: 32),
+
+//               ElevatedButton(
+//                 onPressed: _login,
+//                 child: const Text('로그인'),
+//               ),
+//               const SizedBox(height: 16),
+
+//               Center(
+//                 child: TextButton(
+//                   onPressed: () {
+//                     print('비밀번호 찾기');
+//                   },
+//                   child: const Text(
+//                     '비밀번호를 잊으셨습니까?',
+//                     style: TextStyle(
+//                       color: Color(0xFF1A237E),
+//                       fontSize: 14,
+//                       fontWeight: FontWeight.w600,
+//                     ),
+//                   ),
+//                 ),
+//               ),
+
+//               const Spacer(),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
