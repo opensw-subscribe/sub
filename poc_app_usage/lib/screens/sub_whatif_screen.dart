@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:poc_app_usage/utils/logger.dart'; // logger 사용을 위해 import
 //import '../service/sub_whatif_service.dart';
 //import '../datas/what-if_data.dart'; // Statistic 모델
 

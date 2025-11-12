@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 //import '../datas/bar_graph_data.dart'; // Statistic 모델 import 필요
 //import '../service/sub_bar_graph_service.dart'; // StatisticService import 필요
 
-import 'package:flutter/material.dart';
-import 'dart:math';
-
 class BarGraphData {
   final String userId;
   final String appName;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:poc_app_usage/data/benefit_data.dart';
+import 'package:poc_app_usage/datas/benefit_data.dart';
 import 'package:poc_app_usage/screens/main_screen.dart';
 import 'package:flutter/services.dart'; // 숫자 입력 제한용
 

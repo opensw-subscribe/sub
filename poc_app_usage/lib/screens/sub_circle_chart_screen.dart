@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 //import '../datas/circle_graph_data.dart';// CircleGraphData 모델 import 필요
 //import '../service/sub_cricle_graph_service.dart'; // CircleGraphService import 필요
-import 'dart:math';
 
 class CircleGraphData {
   final String userId;

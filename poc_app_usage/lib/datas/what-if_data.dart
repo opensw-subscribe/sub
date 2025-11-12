@@ -1,4 +1,3 @@
-
 /// 구독 서비스 통계 데이터를 나타내는 모델 클래스
 class WhatifData {
   final String userId;
