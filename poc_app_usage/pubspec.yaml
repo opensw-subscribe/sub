@@ -36,11 +36,13 @@ dependencies:
   cupertino_icons: ^1.0.8
   app_usage: ^4.0.1
   carousel_slider: ^5.1.1
-  
-  http: ^1.5.0 
   logger: ^2.6.2
+  http: ^1.5.0
+  app_settings: ^6.0.0
+  device_info_plus: ^9.0.0
+  shared_preferences: ^2.2.2
+  android_intent_plus: ^5.0.2
   fl_chart: ^0.40.0
-
 
 dev_dependencies:
   flutter_test:
@@ -66,7 +68,8 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-      - assets/images/
+    - assets/logo/
+    - assets/images/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

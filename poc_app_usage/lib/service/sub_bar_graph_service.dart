@@ -13,7 +13,7 @@ class StatisticService {
   /// (GET /api/statistic?user_id={userId})
   
   // 함수 반환 타입은 List<Statistic>
-  Future<List<Statistic>> fetchStatistics(String userId) async {
+  Future<List<BarGraphData>> fetchStatistics(String userId) async {
     try {
       final String url = '$_baseUrl$_endpoint?user_id=$userId'; 
       final response = await http.get(Uri.parse(url));
@@ -27,7 +27,7 @@ class StatisticService {
         
         // JSON 리스트의 각 요소를 Statistic 모델 객체로 변환하여 리스트로 반환
         return jsonList
-            .map((jsonItem) => Statistic.fromJson(jsonItem as Map<String, dynamic>))
+            .map((jsonItem) => BarGraphData.fromJson(jsonItem as Map<String, dynamic>))
             .toList();
         
       } else {
