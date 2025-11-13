@@ -1,49 +1,49 @@
-<<<<<<< HEAD
-plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
-    id("dev.flutter.flutter-gradle-plugin")
-}
+// plugins {
+//     id("com.android.application")
+//     id("kotlin-android")
+//     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+//     id("dev.flutter.flutter-gradle-plugin")
+// }
 
-android {
-    namespace = "com.example.poc_app_usage"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+// android {
+//     namespace = "com.example.poc_app_usage"
+//     compileSdk = flutter.compileSdkVersion
+//     ndkVersion = flutter.ndkVersion
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
+//     compileOptions {
+//         sourceCompatibility = JavaVersion.VERSION_11
+//         targetCompatibility = JavaVersion.VERSION_11
+//     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
-    }
+//     kotlinOptions {
+//         jvmTarget = JavaVersion.VERSION_11.toString()
+//     }
 
-    defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.poc_app_usage"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
-    }
+//     defaultConfig {
+//         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+//         applicationId = "com.example.poc_app_usage"
+//         // You can update the following values to match your application needs.
+//         // For more information, see: https://flutter.dev/to/review-gradle-config.
+//         minSdk = flutter.minSdkVersion
+//         targetSdk = flutter.targetSdkVersion
+//         versionCode = flutter.versionCode
+//         versionName = flutter.versionName
+//     }
 
-    buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
-        }
-    }
-}
+//     buildTypes {
+//         release {
+//             // TODO: Add your own signing config for the release build.
+//             // Signing with the debug keys for now, so `flutter run --release` works.
+//             signingConfig = signingConfigs.getByName("debug")
+//         }
+//     }
+// }
 
-flutter {
-    source = "../.."
-}
-=======
+// flutter {
+//     source = "../.."
+// }
+
+//내가 쓰던거 =======
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -100,4 +100,3 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 flutter {
     source = "../.."
 }
->>>>>>> d8f666275ff1b968b70deadbe8fe5b44482a4550
