@@ -22,16 +22,6 @@ class ChooseFeeScreen extends StatefulWidget {
 class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
   String? selectedFee;
 
-  void _onNextPressed() {
-    if (selectedFee == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('요금제를 선택해주세요.')),
-      );
-      return;
-    }
-    print('${widget.platformName} - 선택된 요금제: $selectedFee');
-  }
-
   // 혜택 팝업
   void _showBenefitDialog(String fee) {
     final benefit = benefitData[widget.platformName]?[fee] ?? '혜택 정보가 없습니다.';
@@ -61,7 +51,9 @@ class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: const Text('직접 요금 입력'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -70,19 +62,21 @@ class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
                 children: [
                   const Text(
                     '월 ',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   Expanded(
                     child: TextField(
                       controller: feeController,
                       keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly], // 숫자만 입력
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                      ], // 숫자만 입력
                       decoration: InputDecoration(
                         hintText: '금액 입력',
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -111,21 +105,23 @@ class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
               onPressed: () {
                 final fee = feeController.text.trim();
                 if (fee.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('요금을 입력해주세요.')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('요금을 입력해주세요.')));
                   return;
                 }
 
                 Navigator.pop(context); // 팝업 닫기
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('요금제 추가 성공')),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('요금제 추가 성공')));
 
                 // main_screen으로 이동
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => const MainDashboardScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const MainDashboardScreen(),
+                  ),
                   (route) => false,
                 );
               },
@@ -178,10 +174,7 @@ class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
               SizedBox(
                 height: 120,
                 width: 120,
-                child: Image.asset(
-                  widget.logoPath,
-                  fit: BoxFit.contain,
-                ),
+                child: Image.asset(widget.logoPath, fit: BoxFit.contain),
               ),
               const SizedBox(height: 40),
 
@@ -194,6 +187,15 @@ class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
                     onTap: () {
                       setState(() => selectedFee = fee);
                       print('${widget.platformName} - $fee 선택됨');
+
+                      // 여기에 다음 화면으로 넘어가는 로직 추가 (예: MainDashboardScreen)
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MainDashboardScreen(),
+                        ),
+                        (route) => false,
+                      );
                     },
                     onLongPress: () => _showBenefitDialog(fee),
                     child: Container(
