@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:poc_app_usage/datas/benefit_data.dart';
 import 'package:poc_app_usage/screens/main_screen.dart';
 import 'package:flutter/services.dart'; // 숫자 입력 제한용
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ChooseFeeScreen extends StatefulWidget {
   final String platformName;
@@ -102,7 +103,7 @@ class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 final fee = feeController.text.trim();
                 if (fee.isEmpty) {
                   ScaffoldMessenger.of(
@@ -111,12 +112,27 @@ class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
                   return;
                 }
 
+                // SharedPreferences에 저장
+                final prefs = await SharedPreferences.getInstance();
+                // 통화 처리: $인 경우 원화로 변환 필요 (예: $20 -> 27000원, 환율은 간단히 1350으로 가정)
+                int feeAmount = int.parse(fee);
+                if (selectedCurrency == '\$') {
+                  feeAmount = (feeAmount * 1350).round(); // 달러를 원화로 변환
+                }
+                
+                await prefs.setString('${widget.platformName}_fee', feeAmount.toString());
+                
+                print('✅ SharedPreferences 저장 (사용자 입력): ${widget.platformName}_fee = $feeAmount');
+
                 Navigator.pop(context); // 팝업 닫기
+                
+                if (!mounted) return;
                 ScaffoldMessenger.of(
                   context,
                 ).showSnackBar(const SnackBar(content: Text('요금제 추가 성공')));
 
                 // main_screen으로 이동
+                if (!mounted) return;
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
@@ -184,11 +200,37 @@ class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 6.0),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(30),
-                    onTap: () {
+                    onTap: () async {
                       setState(() => selectedFee = fee);
                       print('${widget.platformName} - $fee 선택됨');
 
-                      // 여기에 다음 화면으로 넘어가는 로직 추가 (예: MainDashboardScreen)
+                      // 요금제 문자열에서 숫자만 추출 (예: "유튜브 프리미엄 (월 14,900원)" -> "14900")
+                      // 쉼표와 모든 비숫자 문자 제거
+                      String feeAmount = fee
+                          .replaceAll(',', '')  // 쉼표 제거
+                          .replaceAll(RegExp(r'[^0-9]'), '')  // 숫자가 아닌 모든 문자 제거
+                          .trim();
+                      
+                      if (feeAmount.isEmpty) {
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('요금제 금액을 추출할 수 없습니다.')),
+                        );
+                        print('⚠️ 요금제 금액 추출 실패: $fee');
+                        return;
+                      }
+                      
+                      print('💰 추출된 요금: $feeAmount원 (원본: $fee)');
+
+                      // SharedPreferences에 저장
+                      final prefs = await SharedPreferences.getInstance();
+                      // 키 형식: "플랫폼이름_fee", 값: "금액"
+                      await prefs.setString('${widget.platformName}_fee', feeAmount);
+                      
+                      print('✅ SharedPreferences 저장: ${widget.platformName}_fee = $feeAmount');
+
+                      // 메인 화면으로 이동
+                      if (!mounted) return;
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
