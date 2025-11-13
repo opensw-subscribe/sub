@@ -10,3 +10,4 @@ alembic
 requests
 pytest
 pytest-asyncio
+redis

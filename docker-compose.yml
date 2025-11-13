@@ -16,6 +16,35 @@ services:
     networks:
       - backend
 
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - backend
+
+  backend:
+    build: .
+    container_name: fastapi-app
+    depends_on:
+      - db
+      - redis
+    ports:
+      - "8000:8000"
+    environment:
+      - FIREBASE_KEY_PATH=/app/service_account_key.json
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - REDIS_HOST=redis        # <-- 추가
+      - REDIS_PORT=6379         # <-- 추가
+    volumes:
+      - ./service_account_key.json:/app/service_account_key.json
+    networks:
+      - backend
+
 volumes:
   postgres_data:
 

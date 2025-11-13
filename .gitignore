@@ -37,4 +37,4 @@ pytest_cache/
 *.db
 
 # Firebase Key
-app/core/service_account_key.json
+service_account_key.json
