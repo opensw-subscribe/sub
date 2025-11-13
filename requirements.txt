@@ -1,7 +1,12 @@
 fastapi
-uvicorn
-sqlalchemy
+uvicorn[standard]
+SQLAlchemy
 psycopg2-binary
-pydantic
 firebase-admin
 python-dotenv
+pydantic
+httpx
+alembic
+requests
+pytest
+pytest-asyncio
