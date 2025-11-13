@@ -79,36 +79,3 @@ POSTGRES_PORT=5432
 * DB 초기화가 필요하면 PostgreSQL 볼륨 삭제 후 재실행
   `docker compose down -v`
   `docker compose up --build`
-
----
-
-## 6. 프로젝트 주요 구조
-
-backend/
-├─ app/
-│  ├─ main.py
-│  ├─ routers/
-│  ├─ db/
-│  └─ core/
-├─ Dockerfile
-├─ docker-compose.yml
-├─ requirements.txt
-├─ .env
-└─ service_account_key.json
-
----
-
-## 7. 주요 의존성
-
-* fastapi
-* uvicorn[standard]
-* SQLAlchemy
-* psycopg2-binary
-* firebase-admin
-* python-dotenv
-* pydantic
-* httpx
-* alembic
-* requests
-* pytest
-* pytest-asyncio
