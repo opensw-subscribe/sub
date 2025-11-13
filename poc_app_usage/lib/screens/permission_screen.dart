@@ -4,6 +4,8 @@ import 'package:app_usage/app_usage.dart';
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:poc_app_usage/screens/main_screen.dart';
+import 'package:poc_app_usage/screens/choose_platform_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PermissionScreen extends StatefulWidget {
   const PermissionScreen({super.key});
@@ -51,12 +53,29 @@ class _PermissionScreenState extends State<PermissionScreen> with WidgetsBinding
   }
 
   Future<void> _checkAndNavigate() async {
+    // 1. 앱 사용 권한이 있는지 먼저 확인
     if (await _checkPermission()) {
+      
+      // 2. 권한이 있다면, SharedPreferences (기록 저장소)를 엽니다.
+      final prefs = await SharedPreferences.getInstance();
+      
+      // 3. 'platform_chosen'이라는 '기록'이 있는지 확인합니다. (기본값: false)
+      final bool hasChosenPlatform = prefs.getBool('platform_chosen') ?? false;
+
       if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MainDashboardScreen()),
-        );
+        if (hasChosenPlatform) {
+          // '기록'이 있다면 (재방문) -> 메인 대시보드로 이동
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const MainDashboardScreen()),
+          );
+        } else {
+          // '기록'이 없다면 (최초 방문) -> 플랫폼 선택 화면으로 이동
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const ChoosePlatformScreen()),
+          );
+        }
       }
     }
   }

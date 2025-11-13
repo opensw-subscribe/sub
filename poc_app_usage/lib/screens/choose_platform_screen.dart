@@ -6,6 +6,8 @@ import 'package:poc_app_usage/screens/sort_of_sub/choose_cloud_screen.dart';
 import 'package:poc_app_usage/screens/sort_of_sub/choose_ai_screen.dart';
 import 'package:poc_app_usage/screens/sort_of_sub/choose_lifestyle_screen.dart';
 import 'package:poc_app_usage/screens/write_sub_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:poc_app_usage/screens/main_screen.dart';
 
 void main() {
   runApp(const MaterialApp(
@@ -16,6 +18,22 @@ void main() {
 
 class ChoosePlatformScreen extends StatelessWidget {
   const ChoosePlatformScreen({super.key});
+
+  void _completeAndGoMain(BuildContext context) async {
+    // 1. SharedPreferences 저장소 열기
+    final prefs = await SharedPreferences.getInstance();
+    
+    // 2. 'platform_chosen'이라는 깃발을 true로 저장 (이제 PermissionScreen이 이걸 보고 알아챔)
+    await prefs.setBool('platform_chosen', true);
+
+    // 3. 메인 대시보드로 이동 (뒤로 가기 못하게 pushReplacement 사용)
+    if (context.mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainDashboardScreen()),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
