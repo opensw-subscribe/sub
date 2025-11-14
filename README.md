@@ -1,81 +1,31 @@
-# Subscription Backend API
+## backend 요약
 
-FastAPI 기반 구독 관리 백엔드 프로젝트입니다.
-PostgreSQL과 Redis를 사용하며, Firebase 인증과 연동되어 있습니다.
+### 1. 기술 스택 및 구성
 
----
+* **웹 프레임워크:** **FastAPI**
+* **데이터베이스:** **PostgreSQL**
+* **캐시:** **Redis**
+* **인증:** Firebase
+* **구성:** 3개 컨테이너 (FastAPI, DB, Redis)
 
-## 1. 의존성 설치
+### 2. 캐싱 전략 (TTL 기반)
 
-### 로컬 개발 환경 (선택 사항)
+* **정책:** 캐시 만료 시간 (**TTL**, 3600초)에만 의존합니다.
+* **Write/Update 시:** 데이터 수정 시 Redis 캐시를 **강제로 삭제하지 않습니다.**
+* **결과:** 데이터 수정 후 **최대 1시간 동안** 구 버전 데이터(Stale Data)가 조회될 수 있습니다. (코드를 단순화하기 위한 의도적인 선택)
 
-로컬에서 FastAPI를 실행하거나 테스트하려면 가상환경을 만들고 의존성을 설치합니다.
+### 3. 필수 실행 명령어
 
-* venv 생성
-  `python -m venv venv`
-
-* 가상환경 활성화
-  Windows: `venv\Scripts\activate`
-  macOS/Linux: `source venv/bin/activate`
-
-* 의존성 설치
-  `pip install --upgrade pip`
-  `pip install -r requirements.txt`
-
-> ⚠️ Docker 환경에서는 컨테이너 빌드 시 requirements.txt가 자동으로 설치되므로 로컬 설치는 선택 사항입니다.
-
----
-
-## 2. 환경 변수 설정
-
-루트 디렉토리에 `.env` 파일 생성:
-
-POSTGRES_USER=devuser
-POSTGRES_PASSWORD=mysecretpassword
-POSTGRES_DB=devdb
-POSTGRES_PORT=5432
-
-* Firebase 서비스 계정 키는 `service_account_key.json`으로 프로젝트 루트에 위치시킵니다.
+| 명령어 | 역할 |
+| :--- | :--- |
+| `docker compose up --build` | **최초 실행 및 업데이트** (컨테이너 빌드 및 시작) |
+| `docker compose up -d` | **백그라운드 실행** (개발 및 운영) |
+| `docker compose down -v` | **전체 초기화** (컨테이너, 네트워크, DB/Redis 데이터 모두 삭제) |
+| `docker compose logs fastapi-app -f` | **FastAPI 실시간 로그 확인** (디버깅 시 가장 중요) |
 
 ---
 
-## 3. Docker 컨테이너 실행
+### 4. 접속 정보
 
-프로젝트는 3개의 컨테이너로 구성됩니다:
-
-1. PostgreSQL (db)
-2. Redis (cache)
-3. FastAPI (backend)
-
-### 실행 명령
-
-`docker compose up --build`
-
-* FastAPI: [http://localhost:8000](http://localhost:8000)
-* PostgreSQL: 내부 포트 5432
-* Redis: 내부 포트 6379
-
-> FastAPI가 시작되면 DB 테이블이 자동으로 생성됩니다.
-> Redis는 기본 설정으로 실행되며, 별도 config 파일 없이 사용 가능합니다.
-
----
-
-## 4. API 테스트
-
-* FastAPI 기본 테스트 엔드포인트
-  `GET /test`
-
-* Root 엔드포인트
-  `GET /`
-  Response: {"message": "🚀 Backend API is running!"}
-
----
-
-## 5. 개발/테스트 팁
-
-* 코드 변경 시 FastAPI 컨테이너를 재시작
-  `docker compose up --build`
-
-* DB 초기화가 필요하면 PostgreSQL 볼륨 삭제 후 재실행
-  `docker compose down -v`
-  `docker compose up --build`
+* **API 주소:** `http://localhost:8000`
+* **API 문서:** `http://localhost:8000/docs` (Swagger UI)
