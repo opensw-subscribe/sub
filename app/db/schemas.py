@@ -1,9 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
 # User
 class UserCreate(BaseModel):
-    email: str
+    # email: str
     user_name: str
 
 class UserOut(BaseModel):
@@ -11,8 +11,7 @@ class UserOut(BaseModel):
     email: str
     user_name: str
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 # Category
 class CategoryCreate(BaseModel):
@@ -31,9 +30,10 @@ class SubscriptionBase(BaseModel):
     user_satis: int
     is_active: Optional[bool] = True
 
-    class Config:
-            orm_mode = True
-            fields = {"sub_id": "id"}
+    model_config = ConfigDict(
+        from_attributes=True,  # orm_mode 대체
+        populate_by_name=True  # alias (id)를 사용할 수 있도록 설정
+    )
             
 class SubscriptionCreate(BaseModel):
     app_name: str
@@ -61,11 +61,10 @@ class SubscriptionUpdate(BaseModel):
     user_satis: Optional[int] = None
     is_active: Optional[bool] = None
 
-class SubscriptionOut(SubscriptionBase):
-    sub_id: int
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        from_attributes = True  # V2에서는 orm_mode 대신 from_attributes 사용
+class SubscriptionOut(SubscriptionBase):
+    pass
 
 # Analysis
 class AnalysisResultOut(BaseModel):
@@ -74,5 +73,4 @@ class AnalysisResultOut(BaseModel):
     calculated_cph: float
     quadrant_type: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

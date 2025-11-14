@@ -10,7 +10,6 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = "users"
 
-    firebase_uid = Column(String, unique=True, index=True, nullable=False)
     user_id = Column(String, primary_key=True, index=True)  # Firebase UID
     email = Column(String, unique=True, nullable=False)     # 추가
     user_name = Column(String(100), nullable=False)         # name → user_name
@@ -43,7 +42,7 @@ class Subscription(Base):
     user_satis = Column(SmallInteger, nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user = relationship("User", back_populates="subscriptions")
     category = relationship("Category", back_populates="subscriptions")
