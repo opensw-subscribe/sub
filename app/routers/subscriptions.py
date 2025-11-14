@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List
 from app.db import models, schemas, session
 from app.core.firebase import firebase_auth
@@ -34,6 +35,34 @@ def list_subscriptions(user=Depends(firebase_auth), db: Session = Depends(sessio
         raise HTTPException(status_code=404, detail="User not found")
 
     return db_user.subscriptions # 본인 구독만 반환
+
+# 월별 구독 조회
+@router.get("/monthly", response_model=List[schemas.SubscriptionOut])
+def get_monthly_subscriptions(
+    year: int,
+    month: int,
+    user=Depends(firebase_auth),
+    db: Session = Depends(session.get_db)
+):
+    # 사용자 확인
+    db_user = db.query(models.User).filter(models.User.firebase_uid == user["uid"]).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # YYYY-MM 문자열 구성
+    month_str = f"{year}-{month:02d}"
+
+    # 본인 구독 중에서 월별 created_at 필터링
+    subs = (
+        db.query(models.Subscription)
+        .filter(
+            models.Subscription.user_id == db_user.user_id,
+            func.to_char(models.Subscription.created_at, 'YYYY-MM') == month_str
+        )
+        .all()
+    )
+
+    return subs
 
 # 특정 구독 조회
 @router.get("/{sub_id}", response_model=schemas.SubscriptionOut)
