@@ -1,4 +1,7 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
+
+import 'package:flutter/material.dart'; //service import 후에 삭제 필요
+import 'package:http/http.dart' as http; //service import 후에 삭제 필요
 //import '../datas/bar_graph_data.dart'; // Statistic 모델 import 필요
 //import '../service/sub_bar_graph_service.dart'; // StatisticService import 필요
 
@@ -8,7 +11,7 @@ class BarGraphData {
   final String appCategory;
   final int serviceMonthlyPrice;
   final int serviceOncePrice;
-  final int userSatis;
+  int userSatis;
 
   BarGraphData({
     required this.userId,
@@ -73,6 +76,26 @@ class BarGraphDataService {
 
     return mockData.map((jsonItem) => BarGraphData.mock(jsonItem)).toList();
   }
+
+  Future<void> updateRating({
+    required String userId,
+    required String appName,
+    required int newRating,
+  }) async {
+    final url = Uri.parse("http://YOUR_BACKEND_URL/api/subscription/rating");
+
+    final body = {"user_id": userId, "app_name": appName, "rating": newRating};
+
+    final response = await http.patch(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("서버 오류: ${response.statusCode}");
+    }
+  }
 }
 //여기까지 임시 데이터
 
@@ -84,7 +107,6 @@ class SubBarGraphScreen extends StatefulWidget {
   @override
   State<SubBarGraphScreen> createState() => _SubBarGraphScreenState();
 }
-
 
 class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
   // 💡 Statistic -> BarGraphDataService로 변경됨
@@ -104,46 +126,74 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
     _statisticFuture = _service.fetchStatistics(widget.userId);
   }
 
+  Future<void> _updateRating(BarGraphData data, int newRating) async {
+    final int oldRating = data.userSatis;
+
+    // 1) UI 먼저 업데이트
+    setState(() {
+      data.userSatis = newRating;
+    });
+
+    try {
+      // 2) 실제 PATCH 요청
+      await _service.updateRating(
+        userId: data.userId,
+        appName: data.appName,
+        newRating: newRating,
+      );
+
+      // 성공 → 특별히 할 건 없음 (UI는 이미 변경됨)
+    } catch (e) {
+      // 3) 실패 → 원상 복귀
+      setState(() {
+        data.userSatis = oldRating;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("별점 수정 실패: $e")));
+    }
+  }
+
   // -------------------------
   // UI 구성 요소: 별점 위젯
   // -------------------------
-  Widget _buildStarRating(int rating) {
+  Widget _buildStarRating({
+    required int rating,
+    required void Function(int newRating) onChanged,
+  }) {
     const double iconSize = 20;
     const Color fillColor = Colors.amber;
     const Color borderColor = Colors.black;
 
     return Row(
-    mainAxisSize: MainAxisSize.min,
-    children: List.generate(5, (index) {
-      return SizedBox(
-        width: iconSize,
-        height: iconSize,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // 1. 항상 배경/테두리 역할을 하는 빈 별 (검은색 테두리)
-            Icon(
-              Icons.star_border,
-              color: borderColor,
-              size: iconSize,
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (index) {
+        return GestureDetector(
+          onTap: () {
+            onChanged(index + 1); // 클릭한 위치의 별 개수
+          },
+          child: SizedBox(
+            width: iconSize,
+            height: iconSize,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Icon(Icons.star_border, color: borderColor, size: iconSize),
+                if (index < rating)
+                  Padding(
+                    padding: const EdgeInsets.all(1.5),
+                    child: Icon(
+                      Icons.star,
+                      color: fillColor,
+                      size: iconSize * 0.7,
+                    ),
+                  ),
+              ],
             ),
-            
-            // 2. 평점보다 작거나 같을 때만 채워진 별을 그립니다.
-            if (index < rating)
-              Padding(
-                // 🚨 수정: 변경된 변수 이름 사용
-                padding: const EdgeInsets.all(1.5), 
-                child: Icon(
-                  Icons.star,
-                  color: fillColor,
-                  size: iconSize*0.7, 
-                ),
-              ),
-          ],
-        ),
-      );
-    }),
-  );
+          ),
+        );
+      }),
+    );
   }
 
   // -------------------------
@@ -287,7 +337,12 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
             width: 120.0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end, // 오른쪽 정렬
-              children: [_buildStarRating(data.userSatis)],
+              children: [
+                _buildStarRating(
+                  rating: data.userSatis,
+                  onChanged: (newRating) => _updateRating(data, newRating),
+                ),
+              ],
             ),
           ),
 

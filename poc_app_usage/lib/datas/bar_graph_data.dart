@@ -6,7 +6,7 @@ class BarGraphData{
   final String appCategory;
   final int serviceMonthlyPrice;
   final int serviceOncePrice;
-  final int userSatis;
+  int userSatis;
 
   BarGraphData({
     required this.userId,
