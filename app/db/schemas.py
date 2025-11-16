@@ -74,3 +74,9 @@ class AnalysisResultOut(BaseModel):
     quadrant_type: str
 
     model_config = ConfigDict(from_attributes=True)
+
+## 별점 모델
+class SubscriptionRatingUpdateRequest(BaseModel):
+    user_id: str 
+    app_name: str 
+    user_statis: int
