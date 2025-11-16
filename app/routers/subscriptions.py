@@ -78,3 +78,32 @@ def delete_subscription(sub_id: int, user=Depends(firebase_auth), db: Session = 
     db.delete(db_sub)
     db.commit()
     return {"success": True, "message": f"Subscription {sub_id} deleted"}
+
+#앱 만족도 수정
+@router.patch("/rating")
+def update_subscription_rating(
+    payload: schemas.SubscriptionRatingUpdateRequest,
+    user=Depends(firebase_auth),
+    db: Session = Depends(session.get_db),
+):
+    # 1) 유저 검증
+    db_user = db.query(models.User).filter(models.User.user_id == user["uid"]).first()
+    if not db_user or db_user.user_id != payload.user_id:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # 2) 구독 검증
+    db_sub = db.query(models.Subscription).filter(
+        models.Subscription.user_id == payload.user_id,
+        models.Subscription.app_name == payload.app_name
+    ).first()
+
+    if not db_sub:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+
+    # 3) 만족도 업데이트
+    db_sub.user_satis = payload.user_statis
+    db.commit()
+    db.refresh(db_sub)
+
+    # 4) dict로 반환
+    return {"success": True, "message": ""}
