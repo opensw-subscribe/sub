@@ -20,10 +20,10 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./poc_app_usage
-        run: flutter pub get
+        run: flutter pub getxxx
 
       - name: Run widget tests
-        working-directory: poc_app_usage
+        working-directory: ./poc_app_usage
         run: flutter test test/widgets
 
 
