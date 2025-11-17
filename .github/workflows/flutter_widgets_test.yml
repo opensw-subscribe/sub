@@ -1,0 +1,13 @@
+name: Flutter Widget Test
+on: [push, pull_request]
+
+jobs:
+  widget-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.35.7
+      - run: flutter pub get
+      - run: flutter test test/widgets
