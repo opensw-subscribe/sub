@@ -1,13 +1,27 @@
-name: Flutter Code Analysis
-on: [push, pull_request]
+name: Flutter Analyze
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
 
 jobs:
   analyze:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.35.7
-      - run: flutter pub get
-      - run: flutter analyze
+
+      - name: Install dependencies
+        working-directory: poc_app_usage
+        run: flutter pub get
+
+      - name: Run flutter analyze
+        working-directory: poc_app_usage
+        run: flutter analyze
