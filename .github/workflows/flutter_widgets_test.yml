@@ -24,6 +24,6 @@ jobs:
 
       - name: Run widget tests
         working-directory: ./poc_app_usage
-        run: flutter test test/widgets
+        run: flutter test
 
 
