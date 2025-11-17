@@ -19,7 +19,7 @@ jobs:
           flutter-version: 3.35.7
 
       - name: Install dependencies
-        working-directory: poc_app_usage
+        working-directory: ./poc_app_usage
         run: flutter pub get
 
       - name: Run widget tests
