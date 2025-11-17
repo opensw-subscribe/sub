@@ -5,25 +5,20 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:poc_app_usage/main.dart';
+import 'package:poc_app_usage/screens/onboarding_screen.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('OnboardingScreen loads correctly', (WidgetTester tester) async {
+    // 앱 전체를 빌드
     await tester.pumpWidget(const MyApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // OnboardingScreen이 존재하는지 확인
+    expect(find.byType(OnboardingScreen), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // 화면에 특정 텍스트나 버튼이 있는지도 확인 가능
+    // 예: "Get Started" 버튼 존재 여부
+    // expect(find.text('Get Started'), findsOneWidget);
   });
 }
