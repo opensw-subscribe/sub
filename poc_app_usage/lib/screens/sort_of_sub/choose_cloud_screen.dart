@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:poc_app_usage/screens/write_sub_screen.dart';
+import '../../utils/logger.dart';
+
 class ChooseCloudScreen extends StatelessWidget {
   const ChooseCloudScreen({super.key});
 
@@ -66,7 +68,7 @@ class ChooseCloudScreen extends StatelessWidget {
                             aspectRatio: 1.7,
                             child: ElevatedButton(
                               onPressed: () {
-                                print('${buttons[row * 2 + col]} 선택됨');
+                                logger.d('${buttons[row * 2 + col]} 선택됨');
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,

@@ -4,6 +4,7 @@ import 'package:poc_app_usage/screens/sub_circle_chart_screen.dart';
 import 'package:poc_app_usage/screens/sub_bar_chart_screen.dart';
 import 'package:poc_app_usage/screens/sub_whatif_screen.dart';
 import 'package:poc_app_usage/service/usage_service.dart';
+import '../utils/logger.dart';
 
 // StatelessWidget에서 StatefulWidget으로 변경
 class MainDashboardScreen extends StatefulWidget {
@@ -38,10 +39,10 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
 
   // UsageService를 실행하는 함수
   Future<void> _analyzeAndSendUsage() async {
-    print("MainDashboard: UsageService 실행 시작...");
+    logger.d("MainDashboard: UsageService 실행 시작...");
     // (사용자 눈에 안 보이게 백그라운드에서 조용히 실행)
     await UsageService().sendUsageDataToBackend();
-    print("MainDashboard: UsageService 실행 완료.");
+    logger.d("MainDashboard: UsageService 실행 완료.");
   }
 
   // 탭을 눌렀을 때 실행되는 함수

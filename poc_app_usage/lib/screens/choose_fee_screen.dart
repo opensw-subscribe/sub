@@ -3,6 +3,7 @@ import 'package:poc_app_usage/datas/benefit_data.dart';
 import 'package:poc_app_usage/screens/main_screen.dart';
 import 'package:flutter/services.dart'; // 숫자 입력 제한용
 import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/logger.dart';
 
 class ChooseFeeScreen extends StatefulWidget {
   final String platformName;
@@ -122,7 +123,7 @@ class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
                 
                 await prefs.setString('${widget.platformName}_fee', feeAmount.toString());
                 
-                print('✅ SharedPreferences 저장 (사용자 입력): ${widget.platformName}_fee = $feeAmount');
+                logger.d('✅ SharedPreferences 저장 (사용자 입력): ${widget.platformName}_fee = $feeAmount');
 
                 Navigator.pop(context); // 팝업 닫기
                 
@@ -202,7 +203,7 @@ class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
                     borderRadius: BorderRadius.circular(30),
                     onTap: () async {
                       setState(() => selectedFee = fee);
-                      print('${widget.platformName} - $fee 선택됨');
+                      logger.d('${widget.platformName} - $fee 선택됨');
 
                       // 요금제 문자열에서 숫자만 추출 (예: "유튜브 프리미엄 (월 14,900원)" -> "14900")
                       // 쉼표와 모든 비숫자 문자 제거
@@ -216,18 +217,18 @@ class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('요금제 금액을 추출할 수 없습니다.')),
                         );
-                        print('⚠️ 요금제 금액 추출 실패: $fee');
+                        logger.d('⚠️ 요금제 금액 추출 실패: $fee');
                         return;
                       }
                       
-                      print('💰 추출된 요금: $feeAmount원 (원본: $fee)');
+                      logger.d('💰 추출된 요금: $feeAmount원 (원본: $fee)');
 
                       // SharedPreferences에 저장
                       final prefs = await SharedPreferences.getInstance();
                       // 키 형식: "플랫폼이름_fee", 값: "금액"
                       await prefs.setString('${widget.platformName}_fee', feeAmount);
                       
-                      print('✅ SharedPreferences 저장: ${widget.platformName}_fee = $feeAmount');
+                      logger.d('✅ SharedPreferences 저장: ${widget.platformName}_fee = $feeAmount');
 
                       // 메인 화면으로 이동
                       if (!mounted) return;

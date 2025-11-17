@@ -4,6 +4,7 @@ import 'package:poc_app_usage/widgets/custom_text_field.dart';
 import 'package:poc_app_usage/screens/main_screen.dart';
 // import 'package:poc_app_usage/service/auth_service.dart';
 import 'package:poc_app_usage/service/dummy_auth_service.dart';
+import '../utils/logger.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -159,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Center(
                 child: TextButton(
                   onPressed: () {
-                    print('비밀번호 찾기');
+                    logger.d('비밀번호 찾기');
                   },
                   child: const Text(
                     '비밀번호를 잊으셨습니까?',

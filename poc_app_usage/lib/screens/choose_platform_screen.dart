@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:poc_app_usage/screens/sort_of_sub/choose_ott_screen.dart';
 import 'package:poc_app_usage/screens/sort_of_sub/choose_music_screen.dart';
 import 'package:poc_app_usage/screens/sort_of_sub/choose_contents_screen.dart';
-import 'package:poc_app_usage/screens/sort_of_sub/choose_cloud_screen.dart';
 import 'package:poc_app_usage/screens/sort_of_sub/choose_ai_screen.dart';
 import 'package:poc_app_usage/screens/sort_of_sub/choose_lifestyle_screen.dart';
 import 'package:poc_app_usage/screens/write_sub_screen.dart';

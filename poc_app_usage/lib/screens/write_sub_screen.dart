@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../utils/logger.dart';
 
 class WriteSubScreen extends StatefulWidget {
   const WriteSubScreen({super.key});
@@ -71,9 +72,9 @@ class _WriteSubScreenState extends State<WriteSubScreen> {
       return;
     }
 
-    print('입력된 앱 이름: $appName');
-    print('입력된 요금제: $fee $selectedCurrency');
-    print('선택된 카테고리: $category');
+    logger.d('입력된 앱 이름: $appName');
+    logger.d('입력된 요금제: $fee $selectedCurrency');
+    logger.d('선택된 카테고리: $category');
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('앱 정보가 저장되었습니다!')),

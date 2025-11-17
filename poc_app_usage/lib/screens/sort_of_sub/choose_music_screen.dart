@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:poc_app_usage/screens/choose_fee_screen.dart';
 import 'package:poc_app_usage/screens/write_sub_screen.dart';
+import '../../utils/logger.dart';
 
 class ChooseMusicScreen extends StatelessWidget {
   const ChooseMusicScreen({super.key});
@@ -69,7 +70,7 @@ class ChooseMusicScreen extends StatelessWidget {
                             child: ElevatedButton(
                               onPressed: () {
                                 final selected = buttons[row * 2 + col];
-                                print('$selected 선택됨');
+                                logger.d('$selected 선택됨');
 
                                 switch (selected) {
                                   case '멜론':
