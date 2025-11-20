@@ -1,15 +1,10 @@
 package com.example.poc_app_usage
 
-package com.example.app
-
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
-import android.os.Build
-import androidx.annotation.RequiresApi
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import java.util.*
 
 class MainActivity : FlutterActivity() {
 

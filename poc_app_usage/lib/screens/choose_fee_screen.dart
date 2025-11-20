@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:poc_app_usage/datas/benefit_data.dart';
-import 'package:poc_app_usage/screens/main_screen.dart';
 import 'package:flutter/services.dart'; // 숫자 입력 제한용
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/logger.dart';
@@ -21,8 +20,39 @@ class ChooseFeeScreen extends StatefulWidget {
   State<ChooseFeeScreen> createState() => _ChooseFeeScreenState();
 }
 
+
 class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
   String? selectedFee;
+
+  // 추가 선택 여부 다이얼로그
+  Future<bool?> _showAddMoreDialog() {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          '추가 선택',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        content: const Text('더 많은 구독 서비스를 추가하시겠습니까?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('완료', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1A237E),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('추가하기'),
+          ),
+        ],
+      ),
+    );
+  }
 
   // 혜택 팝업
   void _showBenefitDialog(String fee) {
@@ -132,15 +162,20 @@ class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
                   context,
                 ).showSnackBar(const SnackBar(content: Text('요금제 추가 성공')));
 
-                // main_screen으로 이동
+                // 추가 선택 여부 다이얼로그 표시
+                final bool? addMore = await _showAddMoreDialog();
+                
                 if (!mounted) return;
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const MainDashboardScreen(),
-                  ),
-                  (route) => false,
-                );
+                
+                if (addMore == true) {
+                  // 추가 선택 - 플랫폼 선택 화면으로 돌아가기
+                  Navigator.pop(context); // ChooseFeeScreen 닫기
+                  Navigator.pop(context); // ChooseOTTScreen 등 닫기
+                } else {
+                  // 완료 - 플랫폼 선택 화면으로 돌아가서 완료 버튼 표시
+                  Navigator.pop(context); // ChooseFeeScreen 닫기
+                  Navigator.pop(context); // ChooseOTTScreen 등 닫기
+                }
               },
               child: const Text(
                 '추가하기',
@@ -230,15 +265,22 @@ class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
                       
                       logger.d('✅ SharedPreferences 저장: ${widget.platformName}_fee = $feeAmount');
 
-                      // 메인 화면으로 이동
                       if (!mounted) return;
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MainDashboardScreen(),
-                        ),
-                        (route) => false,
-                      );
+                      
+                      // 추가 선택 여부 다이얼로그 표시
+                      final bool? addMore = await _showAddMoreDialog();
+                      
+                      if (!mounted) return;
+                      
+                      if (addMore == true) {
+                        // 추가 선택 - 플랫폼 선택 화면으로 돌아가기
+                        Navigator.pop(context); // ChooseFeeScreen 닫기
+                        Navigator.pop(context); // ChooseOTTScreen 등 닫기
+                      } else {
+                        // 완료 - 플랫폼 선택 화면으로 돌아가서 완료 버튼 표시
+                        Navigator.pop(context); // ChooseFeeScreen 닫기
+                        Navigator.pop(context); // ChooseOTTScreen 등 닫기
+                      }
                     },
                     onLongPress: () => _showBenefitDialog(fee),
                     child: Container(
