@@ -33,6 +33,7 @@ services:
 
   backend:
     build: .
+    image: fastapi-app:local  # kompose에서 이미지 이름을 읽을 수 있게 이름을 명시적으로 지정 
     container_name: fastapi-app
     depends_on:
       db:

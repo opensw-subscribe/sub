@@ -1,31 +1,70 @@
-## backend 요약
+# 🚀 로컬 Kubernetes(minikube) 환경 배포 가이드
+## 이 가이드는 **FastAPI + Postgres + Redis**를 minikube 환경에서 로컬로 실행하는 방법을 안내합니다.
 
-### 1. 기술 스택 및 구성
+> ⚠️ Docker Desktop이 켜져 있어야 하며, Windows 환경에서는 Docker 드라이버 사용을 가정합니다.
 
-* **웹 프레임워크:** **FastAPI**
-* **데이터베이스:** **PostgreSQL**
-* **캐시:** **Redis**
-* **인증:** Firebase
-* **구성:** 3개 컨테이너 (FastAPI, DB, Redis)
 
-### 2. 캐싱 전략 (TTL 기반)
+### 1️⃣ minikube 시작
+```powershell
+minikube start --driver=docker
+```
+* 이미 빌드했다면 생략 가능
 
-* **정책:** 캐시 만료 시간 (**TTL**, 3600초)에만 의존합니다.
-* **Write/Update 시:** 데이터 수정 시 Redis 캐시를 **강제로 삭제하지 않습니다.**
-* **결과:** 데이터 수정 후 **최대 1시간 동안** 구 버전 데이터(Stale Data)가 조회될 수 있습니다. (코드를 단순화하기 위한 의도적인 선택)
+### 2️⃣ backend 이미지 빌드 (이미 했으면 생략 가능)
+```powershell
+docker build -t fastapi-app:local .
+```
 
-### 3. 필수 실행 명령어
 
-| 명령어 | 역할 |
-| :--- | :--- |
-| `docker compose up --build` | **최초 실행 및 업데이트** (컨테이너 빌드 및 시작) |
-| `docker compose up -d` | **백그라운드 실행** (개발 및 운영) |
-| `docker compose down -v` | **전체 초기화** (컨테이너, 네트워크, DB/Redis 데이터 모두 삭제) |
-| `docker compose logs fastapi-app -f` | **FastAPI 실시간 로그 확인** (디버깅 시 가장 중요) |
+### 3️⃣ 이미지 minikube에 로드
+```powershell
+minikube image load fastapi-app:local
+```
+* minikube는 Docker Desktop과 별도로 이미지를 관리하므로 반드시 필요
 
----
+### 4️⃣ Firebase Secret 생성
+```powershell
+kubectl create secret generic firebase-key-secret --from-file=service_account_key.json
+```
 
-### 4. 접속 정보
+### 5️⃣ Postgres Secret 생성
+```powershell
+kubectl create secret generic postgres-secret --from-literal=POSTGRES_USER=admin --from-literal=POSTGRES_PASSWORD=1234
+```
+* PowerShell에서는 위 명령어 그대로 사용가능
+* CMD에서는 줄바꿈 시 ^ 대신 \ 사용
 
-* **API 주소:** `http://localhost:8000`
-* **API 문서:** `http://localhost:8000/docs` (Swagger UI)
+### 6️⃣ YAML 적용
+```powershell
+kubectl apply -f k8s/
+```
+* k8s 폴더에 있는 .yaml 파일을 모두 적용
+* backend, db, redis Deployment 및 Service가 생성됨
+
+### 7️⃣ Pod 상태 확인
+```powershell
+kubectl get pods -w
+```
+* Pod 상태가 Running이 될 때까지 대기
+* 종료하려면 Ctrl + C를 눌러 watch 모드 종료 가능
+
+### 8️⃣ FastAPI 서비스 URL 확인
+```powershell
+minikube service backend --url
+```
+* 출력된 URL을 브라우저나 Postman에서 접속 가능
+* 예: http://127.0.0.1:64574
+
+**추가 명령어**
+* 모든 서비스 목록 확인: 
+```powershell
+minikube service list
+```
+* Pod 로그 확인:
+```powershell
+kubectl logs <pod-name>
+```
+* Pod 상태와 이벤트 확인:
+```powershell
+kubectl describe pod <pod-name>
+```

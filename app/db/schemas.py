@@ -90,4 +90,3 @@ class SubscriptionRatingUpdateRequest(BaseModel):
     app_name: str 
     user_satis: int
     month: Optional[str] = None  # 월별로 별점 저장할 경우
-
