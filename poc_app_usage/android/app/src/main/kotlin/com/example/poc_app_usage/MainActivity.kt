@@ -1,5 +1,58 @@
 package com.example.poc_app_usage
 
-import io.flutter.embedding.android.FlutterActivity
+package com.example.app
 
-class MainActivity : FlutterActivity()
+import android.app.usage.UsageEvents
+import android.app.usage.UsageStatsManager
+import android.os.Build
+import androidx.annotation.RequiresApi
+import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
+import java.util.*
+
+class MainActivity : FlutterActivity() {
+
+    private val CHANNEL = "app_usage_channel"
+
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            CHANNEL
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+
+                "getAppLaunchCounts" -> {
+                    val startMillis = call.argument<Long>("start")!!
+                    val endMillis = call.argument<Long>("end")!!
+                    val counts = getLaunchCounts(startMillis, endMillis)
+                    result.success(counts)
+                }
+
+                else -> result.notImplemented()
+            }
+        }
+    }
+
+    private fun getLaunchCounts(start: Long, end: Long): Map<String, Int> {
+
+        val usageStatsManager =
+            getSystemService(USAGE_STATS_SERVICE) as UsageStatsManager
+
+        val events = usageStatsManager.queryEvents(start, end)
+        val event = UsageEvents.Event()
+        val launchCounts = mutableMapOf<String, Int>()
+
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event)
+            if (event.eventType == UsageEvents.Event.MOVE_TO_FOREGROUND) {
+                val pkg = event.packageName
+                launchCounts[pkg] = (launchCounts[pkg] ?: 0) + 1
+            }
+        }
+
+        return launchCounts
+    }
+}
