@@ -43,18 +43,3 @@ class BarGraphData{
   }
 
 }
-
-// 응답의 성공/실패 여부를 담는 기본 응답 모델
-class ApiResponse {
-  final bool success;
-  final String message;
-
-  ApiResponse({required this.success, required this.message});
-
-  factory ApiResponse.fromJson(Map<String, dynamic> json) {
-    return ApiResponse(
-      success: json['success'] as bool,
-      message: json['message'] as String,
-    );
-  }
-}
