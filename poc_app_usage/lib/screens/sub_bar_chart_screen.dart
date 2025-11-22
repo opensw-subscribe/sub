@@ -1,7 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart'; //service import 후에 삭제 필요
-import 'package:http/http.dart' as http; //service import 후에 삭제 필요
+import 'package:http/http.dart' as http;
+import 'package:poc_app_usage/screens/choose_platform_screen.dart'; //service import 후에 삭제 필요
 //import '../datas/bar_graph_data.dart'; // Statistic 모델 import 필요
 //import '../service/sub_bar_graph_service.dart'; // StatisticService import 필요
 
@@ -378,8 +379,14 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
       actions: [
         TextButton(
           onPressed: () {
-            // '서비스 추가' 화면으로 이동하는 기능
-          },
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ChoosePlatformScreen(),
+            ),
+          );
+        },
+
           child: const Text('서비스 추가', style: TextStyle(color: Colors.blue)),
         ),
       ],

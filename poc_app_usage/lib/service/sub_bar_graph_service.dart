@@ -6,29 +6,29 @@ import 'package:poc_app_usage/utils/logger.dart';
 class StatisticService {
   static const String _baseUrl = "https://YOUR_BACKEND";
 
-  /// 특정 사용자의 월별 구독 통계
-  Future<List<BarGraphData>> fetchStatistics({
-    required String month,  // YYYY-MM 형식
-  }) async {
-    try {
-      final url = Uri.parse("$_baseUrl/api/statistic?month=$month");
-      final response = await http.get(url);
+  Future<List<BarGraphData>> fetchBarGraph(String month) async {
+  try {
+    final url = "$_baseUrl/api/statistic?month=$month";
+    final response = await http.get(Uri.parse(url));
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> jsonMap = jsonDecode(response.body);
-        final List<dynamic> jsonList = jsonMap['data'];
-        return jsonList
-            .map((item) => BarGraphData.fromJson(item))
-            .toList();
-      } else {
-        logger.e("API 호출 실패: ${response.statusCode}");
-        throw Exception("서버 오류: ${response.statusCode}");
-      }
-    } catch (e) {
-      logger.e("fetchStatistics 오류: $e");
-      rethrow;
+    if (response.statusCode == 200) {
+      final body = utf8.decode(response.bodyBytes);
+      final decoded = jsonDecode(body);
+
+      final List<dynamic> list =
+          decoded is Map && decoded['data'] is List
+              ? decoded['data']
+              : (decoded is List ? decoded : []);
+
+      return list.map((json) => BarGraphData.fromJson(json)).toList();
     }
+
+    return [];
+  } catch (e) {
+    logger.e("BarGraph error: $e");
+    return [];
   }
+}
 
   /// 별점 수정
   Future<void> updateRating({
