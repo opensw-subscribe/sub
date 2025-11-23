@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart'; //service import 후에 삭제 필요
 import 'package:http/http.dart' as http;
-import 'package:poc_app_usage/screens/choose_platform_screen.dart'; //service import 후에 삭제 필요
+import 'package:poc_app_usage/screens/choose_platform_screen.dart';
 //import '../datas/bar_graph_data.dart'; // Statistic 모델 import 필요
 //import '../service/sub_bar_graph_service.dart'; // StatisticService import 필요
 
@@ -81,11 +81,20 @@ class BarGraphDataService {
   Future<void> updateRating({
     required String userId,
     required String appName,
+    required int userSatis,
+  }) async {
+    return;  // <-- API 호출 막기
+  }
+}
+/*
+  Future<void> updateRating({
+    required String userId,
+    required String appName,
     required int newRating,
   }) async {
     final url = Uri.parse("http://YOUR_BACKEND_URL/api/subscription/rating");
 
-    final body = {"user_id": userId, "app_name": appName, "rating": newRating};
+    final body = {"user_id": userId, "app_name": appName, "user_statis": newRating};
 
     final response = await http.patch(
       url,
@@ -98,7 +107,8 @@ class BarGraphDataService {
     }
   }
 }
-//여기까지 임시 데이터
+//여기까지 임시데이터
+*/
 
 class SubBarGraphScreen extends StatefulWidget {
   final String userId;
@@ -140,7 +150,7 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
       await _service.updateRating(
         userId: data.userId,
         appName: data.appName,
-        newRating: newRating,
+        userSatis: newRating,
       );
 
       // 성공 → 특별히 할 건 없음 (UI는 이미 변경됨)
@@ -379,13 +389,13 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
       actions: [
         TextButton(
           onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const ChoosePlatformScreen(),
-            ),
-          );
-        },
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ChoosePlatformScreen(),
+              ),
+            );
+          },
 
           child: const Text('서비스 추가', style: TextStyle(color: Colors.blue)),
         ),
