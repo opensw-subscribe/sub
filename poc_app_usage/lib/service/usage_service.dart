@@ -136,7 +136,7 @@ class UsageService {
         if (feeString == null) logger.w("      ❌ 요금 정보가 null입니다.");
         if (packageName == null) logger.w("      ❌ 패키지명을 찾을 수 없습니다. _packageMap에 '$appName' 키가 없습니다.");
       }
-    }
+      }
 
         logger.d("🔍 총 $foundFeeKeys개의 _fee 키를 찾았습니다.");
         logger.d("📤 전송할 데이터 개수: ${dataToSend.length}개");

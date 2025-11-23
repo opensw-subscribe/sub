@@ -2,6 +2,7 @@ package com.example.poc_app_usage
 
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
+import android.content.Context
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -34,7 +35,7 @@ class MainActivity : FlutterActivity() {
     private fun getLaunchCounts(start: Long, end: Long): Map<String, Int> {
 
         val usageStatsManager =
-            getSystemService(USAGE_STATS_SERVICE) as UsageStatsManager
+            getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
 
         val events = usageStatsManager.queryEvents(start, end)
         val event = UsageEvents.Event()
@@ -43,8 +44,8 @@ class MainActivity : FlutterActivity() {
         while (events.hasNextEvent()) {
             events.getNextEvent(event)
             if (event.eventType == UsageEvents.Event.MOVE_TO_FOREGROUND) {
-                val pkg = event.packageName
-                launchCounts[pkg] = (launchCounts[pkg] ?: 0) + 1
+                val pkg = event.packageName ?: continue
+                launchCounts[pkg] = launchCounts.getOrDefault(pkg, 0) + 1
             }
         }
 
