@@ -2,14 +2,15 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:poc_app_usage/utils/logger.dart';
 import '../datas/what-if_data.dart';
+import 'package:poc_app_usage/Config.dart';
 
 class WhatifService {
-  static const String _baseUrl = 'https://your-server-domain.com';
+  static const String _baseUrl = Config.baseUrl;
   static const String _endpoint = '/api/statistic';
 
-Future<List<WhatifData>> fetchWhatifData(String userId) async {
+Future<List<WhatifData>> fetchWhatifData(String month) async {
   try {
-    final String url = '$_baseUrl$_endpoint?user_id=$userId';
+    final String url = '$_baseUrl$_endpoint??month=$month';
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {

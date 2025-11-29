@@ -1,114 +1,7 @@
-import 'dart:convert';
-
-import 'package:flutter/material.dart'; //service import 후에 삭제 필요
-import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
 import 'package:poc_app_usage/screens/choose_platform_screen.dart';
-//import '../datas/bar_graph_data.dart'; // Statistic 모델 import 필요
-//import '../service/sub_bar_graph_service.dart'; // StatisticService import 필요
-
-class BarGraphData {
-  final String userId;
-  final String appName;
-  final String appCategory;
-  final int serviceMonthlyPrice;
-  final int serviceOncePrice;
-  int userSatis;
-
-  BarGraphData({
-    required this.userId,
-    required this.appName,
-    required this.appCategory,
-    required this.serviceMonthlyPrice,
-    required this.serviceOncePrice,
-    required this.userSatis,
-  });
-
-  /// JSON (Map)으로부터 ServiceStatistic 객체를 생성합니다.
-  factory BarGraphData.mock(Map<String, dynamic> json) {
-    return BarGraphData(
-      userId: json['user_id'] as String,
-      appName: json['app_name'] as String,
-      appCategory: json['app_category'] as String,
-      // API 응답의 타입이 확실하지 않다면 .toInt() 또는 안전한 파싱 로직을 추가합니다.
-      serviceMonthlyPrice: json['service_monthly_price'] as int,
-      serviceOncePrice: json['service_once_price'] as int,
-      userSatis: json['user_satis'] as int,
-    );
-  }
-}
-
-class BarGraphDataService {
-  Future<List<BarGraphData>> fetchStatistics(String userId) async {
-    await Future.delayed(const Duration(milliseconds: 800));
-    final List<Map<String, dynamic>> mockData = [
-      {
-        "user_id": userId,
-        "app_name": "멜론",
-        "app_category": "music",
-        "service_monthly_price": 5900,
-        "service_once_price": 1500,
-        "user_satis": 5,
-      },
-      {
-        "user_id": userId,
-        "app_name": "넷플릭스",
-        "app_category": "ott",
-        "service_monthly_price": 12000,
-        "service_once_price": 1200,
-        "user_satis": 2,
-      },
-      {
-        "user_id": userId,
-        "app_name": "유튜브 프리미엄",
-        "app_category": "ott",
-        "service_monthly_price": 8900,
-        "service_once_price": 800,
-        "user_satis": 3,
-      },
-      {
-        "user_id": userId,
-        "app_name": "웨이브",
-        "app_category": "ott",
-        "service_monthly_price": 1900,
-        "service_once_price": 1980,
-        "user_satis": 4,
-      },
-    ];
-
-    return mockData.map((jsonItem) => BarGraphData.mock(jsonItem)).toList();
-  }
-
-  Future<void> updateRating({
-    required String userId,
-    required String appName,
-    required int userSatis,
-  }) async {
-    return;  // <-- API 호출 막기
-  }
-}
-/*
-  Future<void> updateRating({
-    required String userId,
-    required String appName,
-    required int newRating,
-  }) async {
-    final url = Uri.parse("http://YOUR_BACKEND_URL/api/subscription/rating");
-
-    final body = {"user_id": userId, "app_name": appName, "user_statis": newRating};
-
-    final response = await http.patch(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode(body),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception("서버 오류: ${response.statusCode}");
-    }
-  }
-}
-//여기까지 임시데이터
-*/
+import '../datas/bar_graph_data.dart'; // Statistic 모델 import 필요
+import '../service/sub_bar_graph_service.dart'; // StatisticService import 필요
 
 class SubBarGraphScreen extends StatefulWidget {
   final String userId;
@@ -120,8 +13,8 @@ class SubBarGraphScreen extends StatefulWidget {
 }
 
 class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
-  // 💡 Statistic -> BarGraphDataService로 변경됨
-  final BarGraphDataService _service = BarGraphDataService();
+  // 💡 Statistic -> BarGraphService로 변경됨
+  final BarGraphService _service = BarGraphService();
   late Future<List<BarGraphData>> _statisticFuture;
   List<BarGraphData> _statistics = [];
 
@@ -131,34 +24,36 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
 
   late final List<Color> _listColors = [_monthlyPriceColor, _oncePriceColor];
 
+  // 현재 월을 YYYY-MM 형식으로 저장
+  late String _currentMonth;
+
   @override
   void initState() {
     super.initState();
-    _statisticFuture = _service.fetchStatistics(widget.userId);
+    final now = DateTime.now();
+    _currentMonth =
+        "${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}";
+    _statisticFuture = _fetchAndGroupDataByMonth();
+  }
+
+  Future<List<BarGraphData>> _fetchAndGroupDataByMonth() async {
+    final data = await _service.fetchBarGraph(_currentMonth);
+    _statistics = data;
+    return data;
   }
 
   Future<void> _updateRating(BarGraphData data, int newRating) async {
     final int oldRating = data.userSatis;
-
-    // 1) UI 먼저 업데이트
-    setState(() {
-      data.userSatis = newRating;
-    });
+    setState(() => data.userSatis = newRating);
 
     try {
-      // 2) 실제 PATCH 요청
       await _service.updateRating(
         userId: data.userId,
         appName: data.appName,
-        userSatis: newRating,
+        newRating: newRating,
       );
-
-      // 성공 → 특별히 할 건 없음 (UI는 이미 변경됨)
     } catch (e) {
-      // 3) 실패 → 원상 복귀
-      setState(() {
-        data.userSatis = oldRating;
-      });
+      setState(() => data.userSatis = oldRating);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("별점 수정 실패: $e")));

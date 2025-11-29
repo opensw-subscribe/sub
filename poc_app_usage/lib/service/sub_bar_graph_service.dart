@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../datas/bar_graph_data.dart';
 import 'package:poc_app_usage/utils/logger.dart';
+import 'package:poc_app_usage/Config.dart';
 
-class StatisticService {
-  static const String _baseUrl = "https://YOUR_BACKEND";
+class BarGraphService {
+  static const String _baseUrl = Config.baseUrl;
 
   Future<List<BarGraphData>> fetchBarGraph(String month) async {
   try {
@@ -35,7 +36,6 @@ class StatisticService {
     required String userId,
     required String appName,
     required int newRating,
-    String? month, // 필요시 month 전달 가능
   }) async {
     final url = Uri.parse("$_baseUrl/api/subscription/rating");
 
@@ -43,7 +43,6 @@ class StatisticService {
       "user_id": userId,
       "app_name": appName,
       "user_satis": newRating,
-      if (month != null) "month": month,
     };
 
     final response = await http.patch(

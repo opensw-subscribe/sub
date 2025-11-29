@@ -1,11 +1,17 @@
 import 'dart:convert';
 import 'package:app_usage/app_usage.dart';
 import 'package:http/http.dart' as http;
+import 'package:poc_app_usage/Config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/logger.dart';
 import '../utils/native_usage.dart';
+import '../datas/sub_info_data.dart';        // ⬅ 중요! (모델)
+import '../service/sub_info_service.dart'; // ⬅ SubInfoService 불러오기
 
 class UsageService {
+  final SubInfoService _subService = SubInfoService();
+  static const String _baseUrl = Config.baseUrl;
+
   static final Map<String, String> _packageMap = {
     'Netflix': 'com.netflix.mediaclient',
     'Disney+': 'com.disney.disneyplus',
@@ -71,35 +77,23 @@ class UsageService {
       DateTime endDate = DateTime.now();
       DateTime startDate = endDate.subtract(const Duration(days: 30));
 
-      // 1) 기존: 사용 시간 데이터
       final AppUsage appUsage = AppUsage();
-      List<AppUsageInfo> usageInfos = await appUsage.getAppUsage(
-        startDate,
-        endDate,
-      );
-
-      // 2) 추가된 코드: 실행 횟수 데이터
-      Map<String, int> launchCounts = await NativeUsage.getLaunchCounts(
-        startDate,
-        endDate,
-      );
-
+      List<AppUsageInfo> usageInfos = await appUsage.getAppUsage(startDate, endDate);
+      Map<String, int> launchCounts = await NativeUsage.getLaunchCounts(startDate, endDate);
       logger.d("📱 지난 30일 실행횟수 데이터: $launchCounts");
-
-      List<Map<String, dynamic>> dataToSend = [];
-      int foundFeeKeys = 0;
+      List<Map<String, dynamic>> usageDataList = [];
 
       for (String key in allKeys) {
         if (!key.endsWith('_fee')) continue;
-        foundFeeKeys++;
+
         String appName = key.replaceAll('_fee', '');
         String? feeString = prefs.getString(key);
         String? packageName = _packageMap[appName];
 
-          logger.d("   ✓ 찾은 키: $key (앱 이름: $appName, 요금: $feeString)");
-          logger.d("      → 패키지명 맵에서 찾기: $appName -> $packageName");
+        logger.d("   ✓ 찾은 키: $key (앱 이름: $appName, 요금: $feeString)");
+        logger.d("      → 패키지명 맵에서 찾기: $appName -> $packageName");
 
-          if (feeString != null && packageName != null) {
+        if (feeString != null && packageName != null) {
             AppUsageInfo? matchingInfo;
             try {
               matchingInfo = usageInfos.firstWhere((info) => info.packageName == packageName);
@@ -112,49 +106,69 @@ class UsageService {
               logger.w("      ⚠️ 사용 기록 매칭 실패: $packageName 패키지를 사용 기록에서 찾을 수 없습니다.");
             }
 
-        int usageMinutes = matchingInfo?.usage.inMinutes ?? 0;
-        String appCategory = _categoryMap[appName] ?? '기타';
-        int monthlyPrice = int.tryParse(feeString) ?? 0;
+          // ✔ 사용시간 조회
+          AppUsageInfo? usageInfo;
+          try {
+            usageInfo = usageInfos.firstWhere((info) => info.packageName == packageName);
+          } catch (_) {
+            usageInfo = null;
+          }
+          int usageMinutes = usageInfo?.usage.inMinutes ?? 0;
 
-        // 실행 횟수 매칭
-        int launchCount = launchCounts[packageName] ?? 0;
+          // ✔ 실행 횟수
+          int launchCount = launchCounts[packageName] ?? 0;
 
-        logger.d("➡ $appName 사용횟수: $launchCount");
+          // ✔ 카테고리
+          String appCategory = _categoryMap[appName] ?? '기타';
 
-        dataToSend.add({
-          "user_id": userId,
-          "app_name": appName,
-          "app_category": appCategory,
-          "service_monthly_price": monthlyPrice,
-          "service_usage_time": usageMinutes,
-          "service_usage": launchCount, // ⭐ 실행 횟수!!
-        });
+          // ✔ 월 요금
+          int monthlyPrice = int.tryParse(feeString) ?? 0;
 
+          // =====================================
+          //          📌 구독 정보 저장
+          // =====================================
 
-       logger.d("      ✅ 데이터 추가 완료: $appName (카테고리: $appCategory, 가격: $monthlyPrice원, 사용시간: $usageMinutes분)");
-      } else {
-        if (feeString == null) logger.w("      ❌ 요금 정보가 null입니다.");
-        if (packageName == null) logger.w("      ❌ 패키지명을 찾을 수 없습니다. _packageMap에 '$appName' 키가 없습니다.");
-      }
-      }
+          SubInfoData subInfo = SubInfoData(
+            userId: userId,
+            appName: appName,
+            appCategory: appCategory,
+            serviceMonthlyPrice: monthlyPrice, 
+            serviceUsageTime: 0, 
+            serviceUsage: 0, 
+            userSatis: 0,
+          );
 
-        logger.d("🔍 총 $foundFeeKeys개의 _fee 키를 찾았습니다.");
-        logger.d("📤 전송할 데이터 개수: ${dataToSend.length}개");
+          await _subService.saveSubInfoData(subInfo);
+          logger.d("✔ 구독 정보 저장 완료: $appName");
 
-        if (dataToSend.isEmpty) {
-        logger.w("❌ 백엔드로 전송할 구독 데이터가 없습니다.");
-        return;
+          // =====================================
+          //       📌 사용량 데이터 저장용 리스트
+          // =====================================
+
+          usageDataList.add({
+            "user_id": userId,
+            "app_name": appName,
+            "app_category": appCategory,
+            "service_monthly_price": monthlyPrice,
+            "service_usage_time": usageMinutes,
+            "service_usage": launchCount,
+          });
+
+           await http.post(
+            Uri.parse('$_baseUrl/api/subscriptions/'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(subInfo.toJson()),
+          );
+
         }
+      }
 
-      await http.post(
-        Uri.parse('https://your-backend.com/api/usage-data'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({"user_id": userId, "usage_data": dataToSend}),
-      );
+      logger.d("📤 사용량 데이터 ${usageDataList.length}개 전송 중...");
+      logger.i("🎉 전체 데이터 전송 완료!");
 
-      logger.i("전송 완료!");
     } catch (e) {
-      logger.e("오류: $e");
+      logger.e("오류 발생: $e");
     }
   }
 }
+

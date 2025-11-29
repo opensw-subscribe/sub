@@ -1,46 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-//import '../datas/circle_graph_data.dart';// CircleGraphData 모델 import 필요
-//import '../service/sub_cricle_graph_service.dart'; // CircleGraphService import 필요
+import '../datas/circle_graph_data.dart'; // CircleGraphData 모델 import 필요
+import '../service/sub_cricle_graph_service.dart'; // CircleGraphService import 필요
 
-class CircleGraphData {
-  final String userId;
-  final String appName;
-  final int serviceMonthlyPrice;
+//여기까지 임시 데이터
 
-  CircleGraphData({
-    required this.userId,
-    required this.appName,
-    required this.serviceMonthlyPrice,
-  });
-
-  factory CircleGraphData.mock(Map<String, dynamic> json) {
-    return CircleGraphData(
-      userId: json['user_id'] as String,
-      appName: json['app_name'] as String,
-      serviceMonthlyPrice: json['service_monthly_price'] as int,
-    );
-  }
-}
-
-class CircleGraphService {
-  Future<List<CircleGraphData>> fetchStatistics(String userId) async {
-    await Future.delayed(const Duration(milliseconds: 800));
-    final List<Map<String, dynamic>> mockData = [
-      {"user_id": userId, "app_name": "멜론", "service_monthly_price": 5900},
-      {"user_id": userId, "app_name": "넷플릭스", "service_monthly_price": 12000},
-      {
-        "user_id": userId,
-        "app_name": "유튜브 프리미엄",
-        "service_monthly_price": 8900,
-      },
-      {"user_id": userId, "app_name": "웨이브", "service_monthly_price": 1900},
-    ];
-
-    return mockData.map((jsonItem) => CircleGraphData.mock(jsonItem)).toList();
-  }
-}
-//여기까지 임시 데이터 
 class SubCircleChartScreen extends StatefulWidget {
   final String userId;
 
@@ -62,18 +26,22 @@ class _SubCircleChartScreenState extends State<SubCircleChartScreen> {
     Color(0xFF90CAF9),
   ];
 
+  // 현재 월을 YYYY-MM 형식으로 저장
+  late String _currentMonth;
+
   @override
   void initState() {
     super.initState();
-    _statisticFuture = _fetchAndProcessData();
+    final now = DateTime.now();
+    _currentMonth =
+        "${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}";
+    _statisticFuture = _fetchMonthlyData();
   }
 
-  Future<List<CircleGraphData>> _fetchAndProcessData() async {
-    _allStatistics = await _service.fetchStatistics(widget.userId);
-    _allStatistics.sort(
-      (a, b) => b.serviceMonthlyPrice.compareTo(a.serviceMonthlyPrice),
-    );
-    return _allStatistics;
+  Future<List<CircleGraphData>> _fetchMonthlyData() async {
+    final data = await _service.fetchCircleGraph(_currentMonth);
+    _allStatistics = data;
+    return data;
   }
 
   int get _totalMonthlyExpense =>

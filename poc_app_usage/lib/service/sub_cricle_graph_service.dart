@@ -2,9 +2,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../datas/circle_graph_data.dart';
 import 'package:poc_app_usage/utils/logger.dart';
+import 'package:poc_app_usage/Config.dart';
 
-class SubCircleGraphService {
-  static const String _baseUrl = "https://YOUR_BACKEND";
+class CircleGraphService {
+  static const String _baseUrl = Config.baseUrl;
 
   Future<List<CircleGraphData>> fetchCircleGraph(String month) async {
   try {

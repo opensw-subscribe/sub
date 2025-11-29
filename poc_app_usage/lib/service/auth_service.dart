@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:poc_app_usage/Config.dart';
 
 class AuthService {
   final String baseUrl;
-  AuthService({this.baseUrl = 'https://your-backend.com'});
+  AuthService({this.baseUrl = Config.baseUrl});
 
   // 회원가입
   Future<Map<String, dynamic>> signup({
