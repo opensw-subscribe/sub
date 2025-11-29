@@ -54,9 +54,9 @@ class WhatifService {
 // ----------------------------------------------------------------------
 
 class SubWhatIfScreen extends StatefulWidget {
-  final String userId;
+  final String idToken;
 
-  const SubWhatIfScreen({super.key, required this.userId});
+  const SubWhatIfScreen({super.key, required this.idToken});
 
   @override
   State<SubWhatIfScreen> createState() => _SubWhatIfScreenState();
@@ -75,7 +75,7 @@ class _SubWhatIfScreenState extends State<SubWhatIfScreen> {
   }
 
   Future<List<WhatifData>> _fetchAndInitializeData() async {
-    _statistics = await _service.fetchStatistics(widget.userId);
+    _statistics = await _service.fetchStatistics(widget.idToken);
     return _statistics;
   }
 

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "164790359994",
+    "project_id": "fir-backend-c706b",
+    "storage_bucket": "fir-backend-c706b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:164790359994:android:639be437e34a3def05ef83",
+        "android_client_info": {
+          "package_name": "com.example.poc_app_usage"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAExejqhG8TNIEReK7t0B1az0I0QgzKdXA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:164790359994:android:d44784d9f9553d3105ef83",
+        "android_client_info": {
+          "package_name": "com.firebasebackend.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAExejqhG8TNIEReK7t0B1az0I0QgzKdXA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

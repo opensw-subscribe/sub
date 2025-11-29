@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {
-  final String userId;
-  const HomeScreen({super.key, required this.userId});
+  final String username;
+  const HomeScreen({super.key, required this.username});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +20,7 @@ class HomeScreen extends StatelessWidget {
             const Icon(Icons.home, size: 80, color: Color(0xFF1A237E)),
             const SizedBox(height: 20),
             Text(
-              '$userId님,\n오늘도 현명한 소비 하세요!',
+              '$username님,\n오늘도 현명한 소비 하세요!',
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),

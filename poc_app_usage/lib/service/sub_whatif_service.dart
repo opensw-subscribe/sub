@@ -4,7 +4,7 @@ import 'package:poc_app_usage/utils/logger.dart';
 import '../datas/what-if_data.dart';
 
 class WhatifService {
-  static const String _baseUrl = 'https://your-server-domain.com';
+  static const String _baseUrl = 'http://10.0.2.2:52141';
   static const String _endpoint = '/api/statistic';
 
 Future<List<WhatifData>> fetchWhatifData(String userId) async {

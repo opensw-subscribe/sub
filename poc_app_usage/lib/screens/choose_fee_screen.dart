@@ -151,7 +151,8 @@ class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
                   feeAmount = (feeAmount * 1350).round(); // 달러를 원화로 변환
                 }
                 
-                await prefs.setString('${widget.platformName}_fee', feeAmount.toString());
+                final email = prefs.getString('email');
+                await prefs.setString('${email}_${widget.platformName}_fee', feeAmount.toString());
                 
                 logger.d('✅ SharedPreferences 저장 (사용자 입력): ${widget.platformName}_fee = $feeAmount');
 
@@ -261,7 +262,9 @@ class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
                       // SharedPreferences에 저장
                       final prefs = await SharedPreferences.getInstance();
                       // 키 형식: "플랫폼이름_fee", 값: "금액"
-                      await prefs.setString('${widget.platformName}_fee', feeAmount);
+                      final email = prefs.getString('email');
+                      await prefs.setString('${email}_${widget.platformName}_fee', feeAmount);
+
                       
                       logger.d('✅ SharedPreferences 저장: ${widget.platformName}_fee = $feeAmount');
 

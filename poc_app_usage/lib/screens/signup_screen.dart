@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:poc_app_usage/screens/permission_screen.dart';
 import 'package:poc_app_usage/widgets/custom_text_field.dart';
-// import 'package:poc_app_usage/service/auth_service.dart';
 import 'package:poc_app_usage/screens/login_screen.dart';
-import 'package:poc_app_usage/service/dummy_auth_service.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // 토큰 저장용
+import 'package:poc_app_usage/service/auth_service.dart';
+import 'package:poc_app_usage/service/user_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -15,35 +15,28 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _idController = TextEditingController(); // 아이디로 사용
+  final TextEditingController _idController = TextEditingController(); // 이메일
   final TextEditingController _passwordController = TextEditingController();
 
   bool _nameError = false;
   bool _idError = false;
   bool _passwordError = false;
   bool _isLoading = false;
-  String? _errorMsg;
-  
-  //final AuthService _authService = AuthService();
-  
-  // 더미 인증 서비스 사용
-  final DummyAuthService _authService = DummyAuthService();
 
-  @override
-  void initState() {
-    super.initState();
-    _authService.addDummyUser(); 
-  } // 여기까지 테스트용 더미 유저 등록
+  String? _errorMsg;
+
+  final AuthService _authService = AuthService();
+  final UserService _userService = UserService(); // baseUrl은 파일 안에서 기본값
 
   Future<void> _signup() async {
     final String name = _nameController.text.trim();
-    final String id = _idController.text.trim();
+    final String email = _idController.text.trim();
     final String password = _passwordController.text;
 
     final bool nameEmpty = name.isEmpty;
-    final bool idEmpty = id.isEmpty;
+    final bool idEmpty = email.isEmpty;
     final bool passwordEmpty = password.isEmpty;
-    final bool nameTooLong = name.length > 5; 
+    final bool nameTooLong = name.length > 5;
 
     if (nameEmpty || idEmpty || passwordEmpty || nameTooLong) {
       setState(() {
@@ -55,38 +48,49 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    setState(() { _isLoading = true; _errorMsg = null; });
+    setState(() {
+      _isLoading = true;
+      _errorMsg = null;
+    });
+
     try {
-      // 회원가입
-      await _authService.signup(
+      // 1) Firebase 회원가입
+      await _authService.signup(email: email, username: name, password: password);
+
+      // 2) Firebase 로그인 (자동 로그인)
+      await _authService.login(email: email, password: password);
+
+      // 3) idToken 가져오기
+      final String idToken = await _authService.getIdToken();
+
+      // 4) 백엔드에 사용자 생성 요청
+      await _userService.createUser(
+        idToken: idToken,
         username: name,
-        user_id: id,
-        password: password,
       );
 
-      // 자동 로그인
-      final loginData = await _authService.login(
-        user_id: id,
-        password: password,
-      );
-
-      // 토큰 저장
+      // 5) 토큰 저장
       final prefs = await SharedPreferences.getInstance();
-      if (loginData.containsKey('token')) {
-        await prefs.setString('auth_token', loginData['token']);
-      }
+      await prefs.setString('email', email);
+      await prefs.setString('auth_token', idToken);
 
-      // PermissionScreen으로 이동
+      // 6) PermissionScreen으로 이동
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const PermissionScreen()),
+          MaterialPageRoute(
+            builder: (context) => const PermissionScreen(),
+          ),
         );
       }
     } catch (e) {
-      setState(() { _errorMsg = e.toString(); });
+      setState(() {
+        _errorMsg = '회원가입 실패: $e';
+      });
     } finally {
-      setState(() { _isLoading = false; });
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -105,9 +109,9 @@ class _SignupScreenState extends State<SignupScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch, 
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 64), 
+              const SizedBox(height: 64),
               SizedBox(
                 height: 40,
                 child: Stack(
@@ -127,7 +131,9 @@ class _SignupScreenState extends State<SignupScreen> {
                         onPressed: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => const LoginScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => const LoginScreen(),
+                            ),
                           );
                         },
                         child: Text(
@@ -184,13 +190,23 @@ class _SignupScreenState extends State<SignupScreen> {
               if (_errorMsg != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Text(_errorMsg!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+                  child: Text(
+                    _errorMsg!,
+                    style: const TextStyle(color: Colors.red, fontSize: 13),
+                  ),
                 ),
               ElevatedButton(
                 onPressed: _isLoading ? null : _signup,
                 child: _isLoading
-                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('회원가입'),
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('회원가입'),
               ),
               const Spacer(),
             ],

@@ -66,7 +66,7 @@ class UsageService {
       final allKeys = prefs.getKeys();
       logger.d("📋 SharedPreferences에 저장된 모든 키: $allKeys");
 
-      final String userId = prefs.getString('user_id') ?? 'test_user_id';
+      final String userId = prefs.getString('user_id') ?? 'user';
 
       DateTime endDate = DateTime.now();
       DateTime startDate = endDate.subtract(const Duration(days: 30));
@@ -90,14 +90,21 @@ class UsageService {
       int foundFeeKeys = 0;
 
       for (String key in allKeys) {
-        if (!key.endsWith('_fee')) continue;
-        foundFeeKeys++;
-        String appName = key.replaceAll('_fee', '');
-        String? feeString = prefs.getString(key);
-        String? packageName = _packageMap[appName];
+          if (!key.endsWith('_fee')) continue;
+          foundFeeKeys++;
 
-          logger.d("   ✓ 찾은 키: $key (앱 이름: $appName, 요금: $feeString)");
-          logger.d("      → 패키지명 맵에서 찾기: $appName -> $packageName");
+          
+          final parts = key.split('_');
+          if (parts.length < 3) continue;
+
+          final String appName = parts.sublist(1, parts.length - 1).join('_');
+          final String? feeString = prefs.getString(key);
+          final String? packageName = _packageMap[appName];
+
+          logger.d("   ✓ 찾은 키: $key");
+          logger.d("      → 실제 추출된 appName: $appName");
+          logger.d("      → 패키지명 매칭: $packageName");
+
 
           if (feeString != null && packageName != null) {
             AppUsageInfo? matchingInfo;
@@ -147,10 +154,17 @@ class UsageService {
         }
 
       await http.post(
-        Uri.parse('https://your-backend.com/api/usage-data'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({"user_id": userId, "usage_data": dataToSend}),
+  Uri.parse('http://10.0.2.2:52141/api/subscriptions/'),
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${prefs.getString('auth_token')}',
+  },
+  body: jsonEncode({
+    "user_id": userId,
+    "usage_data": dataToSend,
+  })
       );
+
 
       logger.i("전송 완료!");
     } catch (e) {

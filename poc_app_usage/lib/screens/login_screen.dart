@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:poc_app_usage/screens/signup_screen.dart';
 import 'package:poc_app_usage/widgets/custom_text_field.dart';
 import 'package:poc_app_usage/screens/main_screen.dart';
-// import 'package:poc_app_usage/service/auth_service.dart';
-import 'package:poc_app_usage/service/dummy_auth_service.dart';
+import 'package:poc_app_usage/service/auth_service.dart';
+import 'package:poc_app_usage/service/user_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/logger.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -21,23 +22,15 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _passwordError = false;
   bool _isLoading = false;
   String? _errorMsg;
-  
-  //final AuthService _authService = AuthService();
-  
-  // 더미 인증 서비스 사용
-  final DummyAuthService _authService = DummyAuthService();
 
-  @override
-  void initState() {
-    super.initState();
-    _authService.addDummyUser(); 
-  } // 여기 까지 테스트용 더미 유저 등록
+  final AuthService _authService = AuthService();
+  final UserService _userService = UserService();
 
   Future<void> _login() async {
-    final String id = _idController.text.trim();
+    final String email = _idController.text.trim();
     final String password = _passwordController.text;
 
-    final bool idEmpty = id.isEmpty;
+    final bool idEmpty = email.isEmpty;
     final bool passwordEmpty = password.isEmpty;
 
     if (idEmpty || passwordEmpty) {
@@ -49,21 +42,44 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    setState(() { _isLoading = true; _errorMsg = null; });
+    setState(() {
+      _isLoading = true;
+      _errorMsg = null;
+    });
+
     try {
-      final result = await _authService.login(user_id: id, password: password);
-      if (result['success'] == true) {
+      // 1) Firebase 로그인
+      await _authService.login(email: email, password: password);
+
+      // 2) idToken 가져오기
+      final String idToken = await _authService.getIdToken();
+
+      // 3) 백엔드에 내 정보 조회 요청 (검증 겸)
+      final me = await _userService.getMe(idToken: idToken);
+      logger.d('내 정보: $me');
+
+      // 4) 토큰 저장
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('auth_token', idToken);
+      await prefs.setString('email', email);
+
+      // 5) 메인 화면으로 이동
+      if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const MainDashboardScreen()),
+          MaterialPageRoute(
+            builder: (context) => const MainDashboardScreen(),
+          ),
         );
-      } else {
-        setState(() { _errorMsg = result['message'] ?? '로그인 실패'; });
       }
     } catch (e) {
-      setState(() { _errorMsg = e.toString(); });
+      setState(() {
+        _errorMsg = '로그인 실패: $e';
+      });
     } finally {
-      setState(() { _isLoading = false; });
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -81,9 +97,9 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch, 
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 64), 
+              const SizedBox(height: 64),
               SizedBox(
                 height: 40,
                 child: Stack(
@@ -103,7 +119,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => const SignupScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => const SignupScreen(),
+                            ),
                           );
                         },
                         child: Text(
@@ -148,13 +166,23 @@ class _LoginScreenState extends State<LoginScreen> {
               if (_errorMsg != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Text(_errorMsg!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+                  child: Text(
+                    _errorMsg!,
+                    style: const TextStyle(color: Colors.red, fontSize: 13),
+                  ),
                 ),
               ElevatedButton(
                 onPressed: _isLoading ? null : _login,
                 child: _isLoading
-                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('로그인'),
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('로그인'),
               ),
               const SizedBox(height: 16),
               Center(
@@ -180,6 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
 
 //예은 테스트용 임시 코드 - 나중에 지워도 됨
 

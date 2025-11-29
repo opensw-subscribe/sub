@@ -1,22 +1,32 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:poc_app_usage/utils/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../datas/sub_info_data.dart'; // 모델 클래스 위치에 따라 경로 수정 필요
 
 class SubInfoService {
   // 실제 API 엔드포인트로 변경
-  static const String _baseUrl = 'https://your-server-domain.com';
-  static const String _endpoint = '/api/subscription';
+  static const String _baseUrl = 'http://10.0.2.2:52141';
+  static const String _endpoint = '/api/subscriptions';
 
   /// 특정 사용자의 구독 서비스 리스트를 저장합니다.
 
   /// 구독 정보 저장
   Future<void> saveSubInfoData(SubInfoData data) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+
+      if (token == null) {
+        throw Exception("❌ 저장 실패: 로그인 토큰 없음");
+      }
       final String url = '$_baseUrl$_endpoint';
       final response = await http.post(
         Uri.parse(url),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+},
         body: jsonEncode(data.toJson()),
       );
 

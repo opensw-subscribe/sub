@@ -7,8 +7,9 @@ import 'package:poc_app_usage/screens/sort_of_sub/choose_lifestyle_screen.dart';
 import 'package:poc_app_usage/screens/write_sub_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:poc_app_usage/screens/main_screen.dart';
-import 'package:poc_app_usage/service/usage_service.dart';
 import '../utils/logger.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class ChoosePlatformScreen extends StatefulWidget {
   const ChoosePlatformScreen({super.key});
@@ -18,10 +19,10 @@ class ChoosePlatformScreen extends StatefulWidget {
 }
 
 class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
-  // 선택된 구독 서비스 목록 (앱 이름들)
+  // ✅ 선택된 구독 서비스
   final Set<String> _selectedServices = {};
 
-  // 앱 이름과 가격 매핑
+  // ✅ 앱 이름 → 가격
   final Map<String, String> _servicePrices = {};
 
   @override
@@ -30,19 +31,31 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
     _loadSelectedServices();
   }
 
-  // SharedPreferences에서 선택된 서비스 목록 불러오기
+  // ✅ ✅ ✅ 이메일 기준으로 구독 불러오기 (기능 유지)
   Future<void> _loadSelectedServices() async {
     final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('email');
+
+    logger.d('✅ 현재 로그인 이메일: $email');
+    logger.d('✅ 전체 저장된 키: ${prefs.getKeys()}');
+
+    if (email == null) return;
+
     final allKeys = prefs.getKeys();
 
     setState(() {
       _selectedServices.clear();
       _servicePrices.clear();
+
       for (String key in allKeys) {
-        if (key.endsWith('_fee')) {
-          String appName = key.replaceAll('_fee', '');
-          String? price = prefs.getString(key);
+        if (key.startsWith('${email}_') && key.endsWith('_fee')) {
+          final appName =
+              key.replaceFirst('${email}_', '').replaceAll('_fee', '');
+
+          final price = prefs.getString(key);
+
           _selectedServices.add(appName);
+
           if (price != null) {
             _servicePrices[appName] = price;
           }
@@ -51,59 +64,120 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
     });
   }
 
-  // 서비스 삭제
+  // ✅ 서비스 삭제 (이메일 기준)
   Future<void> _removeService(String appName) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('${appName}_fee');
+    final email = prefs.getString('email');
+    if (email == null) return;
+
+    await prefs.remove('${email}_${appName}_fee');
+
     setState(() {
       _selectedServices.remove(appName);
       _servicePrices.remove(appName);
     });
+
     logger.d('✅ 서비스 삭제: $appName');
   }
 
-  // 완료 - 백엔드 전송 후 메인으로 이동
+  // ✅ 완료 버튼 → 계정 기준 완료 처리
   Future<void> _completeAndGoMain() async {
-    if (_selectedServices.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('최소 1개 이상의 구독 서비스를 선택해주세요.')),
-      );
-      return;
-    }
+    logger.d("✅ _completeAndGoMain 진입함");
 
-    // 로딩 표시
-    if (!mounted) return;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+  if (_selectedServices.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('최소 1개 이상의 구독 서비스를 선택해주세요.')),
+    );
+    return;
+  }
+
+  final prefs = await SharedPreferences.getInstance();
+  final email = prefs.getString('email');
+  final token = prefs.getString('auth_token');
+
+  if (email == null || token == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('로그인 정보가 없습니다. 다시 로그인해주세요.')),
+    );
+    return;
+  }
+
+  // ✅ 1️⃣ 서버 저장 먼저 "완전히" 끝내고
+  try {
+    await _sendSubscriptionsToServer();
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('구독 정보 저장 실패')),
+    );
+    return;
+  }
+
+  // ✅ 2️⃣ 그 다음에 platform_chosen 저장
+  await prefs.setBool('platform_chosen_$email', true);
+
+  if (!mounted) return;
+
+  // ✅ 3️⃣ 마지막에 화면 이동
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (context) => const MainDashboardScreen()),
+  );
+}
+
+
+  Future<void> _sendSubscriptionsToServer() async {
+  logger.d("✅ _sendSubscriptionsToServer 실행됨");
+
+  final prefs = await SharedPreferences.getInstance();
+  final idToken = prefs.getString('auth_token');
+  final email = prefs.getString('email');
+
+  if (idToken == null || email == null) return;
+
+  for (final appName in _selectedServices) {
+    final price = _servicePrices[appName];
+    if (price == null) continue;
+
+    final body = {
+      "app_name": appName,
+      "category_id": _convertCategory(appName), // 아래 함수 참고
+      "service_monthly_price": int.parse(price),
+      "service_usage": 0,
+      "service_usage_time": 0,
+      "is_active": true,
+      "user_satis": 5,
+    };
+
+    final response = await http.post(
+      Uri.parse("http://10.0.2.2:52141/api/subscriptions/"),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $idToken',
+      },
+      body: jsonEncode(body),
     );
 
-    try {
-      // 백엔드로 데이터 전송
-      final usageService = UsageService();
-      await usageService.sendUsageDataToBackend();
-
-      // SharedPreferences에 완료 표시
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('platform_chosen', true);
-
-      if (!mounted) return;
-      Navigator.pop(context); // 로딩 다이얼로그 닫기
-
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainDashboardScreen()),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      Navigator.pop(context); // 로딩 다이얼로그 닫기
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('오류 발생: $e')));
-    }
+    logger.d("✅ 구독 서버 저장 결과: ${response.statusCode}");
   }
+}
+
+int _convertCategory(String appName) {
+  if (['Netflix', 'Disney+', 'Wavve', 'TVING', 'WATCHA', 'Coupang Play'].contains(appName)) {
+    return 1; // OTT
+  }
+  if (['Melon', 'Genie', 'FLO'].contains(appName)) {
+    return 2; // Music
+  }
+  if (['YouTube Premium', 'RIDI', 'Millie'].contains(appName)) {
+    return 3; // Contents
+  }
+  if (['ChatGPT', 'Gemini', 'Notion'].contains(appName)) {
+    return 4; // AI
+  }
+  return 5; // LifeStyle
+}
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -127,17 +201,13 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
             color: Colors.black,
           ),
         ),
-        leading: BackButton(onPressed: () => Navigator.pop(context)),
       ),
       body: Column(
         children: [
-          // 메인 콘텐츠
+          // ✅ 메인 콘텐츠 (예전 UI 그대로 유지)
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24.0,
-                vertical: 16,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -167,7 +237,6 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
                   ),
                   const SizedBox(height: 18),
 
-                  // 6개 버튼
                   for (int row = 0; row < 3; row++)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -190,9 +259,7 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
                                             builder: (context) =>
                                                 const ChooseOTTScreen(),
                                           ),
-                                        ).then((_) {
-                                          if (mounted) _loadSelectedServices();
-                                        });
+                                        ).then((_) => _loadSelectedServices());
                                       } else if (label == 'Music') {
                                         Navigator.push(
                                           context,
@@ -200,9 +267,7 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
                                             builder: (context) =>
                                                 const ChooseMusicScreen(),
                                           ),
-                                        ).then((_) {
-                                          if (mounted) _loadSelectedServices();
-                                        });
+                                        ).then((_) => _loadSelectedServices());
                                       } else if (label == 'Contents') {
                                         Navigator.push(
                                           context,
@@ -210,20 +275,7 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
                                             builder: (context) =>
                                                 const ChooseContentsScreen(),
                                           ),
-                                        ).then((_) {
-                                          if (mounted) _loadSelectedServices();
-                                        });
-                                      } else if (label == 'Cloud') {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'Cloud 화면은 아직 준비 중입니다.',
-                                            ),
-                                            duration: Duration(seconds: 2),
-                                          ),
-                                        );
+                                        ).then((_) => _loadSelectedServices());
                                       } else if (label == 'AI') {
                                         Navigator.push(
                                           context,
@@ -231,9 +283,7 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
                                             builder: (context) =>
                                                 const ChooseAIScreen(),
                                           ),
-                                        ).then((_) {
-                                          if (mounted) _loadSelectedServices();
-                                        });
+                                        ).then((_) => _loadSelectedServices());
                                       } else if (label == 'LifeStyle') {
                                         Navigator.push(
                                           context,
@@ -241,9 +291,7 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
                                             builder: (context) =>
                                                 const ChooseLifestyleScreen(),
                                           ),
-                                        ).then((_) {
-                                          if (mounted) _loadSelectedServices();
-                                        });
+                                        ).then((_) => _loadSelectedServices());
                                       }
                                     },
                                     style: ElevatedButton.styleFrom(
@@ -255,9 +303,8 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
                                           color: Colors.black12,
                                         ),
                                       ),
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 16,
-                                      ),
+                                      padding:
+                                          const EdgeInsets.symmetric(vertical: 16),
                                     ),
                                     child: Text(
                                       buttons[row * 2 + col],
@@ -274,6 +321,7 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
                     ),
 
                   const SizedBox(height: 12),
+
                   ElevatedButton(
                     onPressed: () {
                       Navigator.push(
@@ -281,7 +329,7 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
                         MaterialPageRoute(
                           builder: (context) => const WriteSubScreen(),
                         ),
-                      );
+                      ).then((_) => _loadSelectedServices());
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
@@ -305,7 +353,7 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
             ),
           ),
 
-          // 하단 선택된 서비스 리스트
+          // ✅ 하단 선택 리스트 (예전 UI 그대로)
           if (_selectedServices.isNotEmpty)
             Container(
               height: 120,
@@ -317,10 +365,8 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Text(
                       '선택된 구독 서비스 (${_selectedServices.length})',
                       style: const TextStyle(
@@ -333,10 +379,12 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
                   Expanded(
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 8),
                       itemCount: _selectedServices.length,
                       itemBuilder: (context, index) {
-                        final appName = _selectedServices.elementAt(index);
+                        final appName =
+                            _selectedServices.elementAt(index);
                         return _buildSelectedServiceChip(appName);
                       },
                     ),
@@ -345,29 +393,35 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
               ),
             ),
 
-          // 완료 버튼 (선택된 서비스가 있을 때만 표시)
+          // ✅ 완료 버튼
           if (_selectedServices.isNotEmpty)
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
-                border: Border(top: BorderSide(color: Colors.grey[300]!)),
+                border:
+                    Border(top: BorderSide(color: Colors.grey[300]!)),
               ),
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _completeAndGoMain,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1A237E),
+                    backgroundColor:
+                        const Color(0xFF1A237E),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius:
+                          BorderRadius.circular(12),
                     ),
                   ),
                   child: const Text(
                     '완료하기',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -377,37 +431,34 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
     );
   }
 
-  // 선택된 서비스 칩 위젯 (스와이프 삭제 가능)
+  // ✅ 선택된 서비스 칩 (예전 디자인 유지)
   Widget _buildSelectedServiceChip(String appName) {
     return Dismissible(
       key: Key(appName),
-      direction: DismissDirection.endToStart, // 좌측으로 스와이프 (오른쪽에서 왼쪽으로)
+      direction: DismissDirection.endToStart,
       background: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        margin:
+            const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         decoration: BoxDecoration(
           color: Colors.red,
           borderRadius: BorderRadius.circular(20),
         ),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        child: const Icon(Icons.delete, color: Colors.white, size: 24),
+        child:
+            const Icon(Icons.delete, color: Colors.white, size: 24),
       ),
-      onDismissed: (direction) {
-        _removeService(appName);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$appName 삭제됨'),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      },
+      onDismissed: (_) => _removeService(appName),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin:
+            const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFF1A237E)),
+          border:
+              Border.all(color: const Color(0xFF1A237E)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -424,11 +475,13 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
               const SizedBox(width: 6),
               Text(
                 '월 ${_servicePrices[appName]}원',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                style:
+                    TextStyle(fontSize: 12, color: Colors.grey[600]),
               ),
             ],
             const SizedBox(width: 4),
-            const Icon(Icons.check_circle, size: 18, color: Color(0xFF1A237E)),
+            const Icon(Icons.check_circle,
+                size: 18, color: Color(0xFF1A237E)),
           ],
         ),
       ),

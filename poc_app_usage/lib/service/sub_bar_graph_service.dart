@@ -4,7 +4,7 @@ import '../datas/bar_graph_data.dart';
 import 'package:poc_app_usage/utils/logger.dart';
 
 class StatisticService {
-  static const String _baseUrl = "https://YOUR_BACKEND";
+  static const String _baseUrl = 'http://10.0.2.2:52141';
 
   Future<List<BarGraphData>> fetchBarGraph(String month) async {
   try {

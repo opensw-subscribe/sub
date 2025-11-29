@@ -1,69 +1,119 @@
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  final String baseUrl;
-  AuthService({this.baseUrl = 'https://your-backend.com'});
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // 회원가입
-  Future<Map<String, dynamic>> signup({
-    required String user_id, // email
-    required String username, // nickname
+
+  final String baseUrl = 'http://10.0.2.2:52141';
+
+  Future<void> signup({
+    required String email,
+    required String username,
     required String password,
   }) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/api/signup'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'user_id': user_id,
-          'user_name': username,
-          'password': password,
-        }),
-      );
+    
+    await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
 
-      final resJson = jsonDecode(response.body);
+    final String idToken = await getIdToken();
 
-      // 성공 조건: HTTP 200 + success true
-      if (response.statusCode == 200 && resJson['success'] == true) {
-        final data = resJson['data'] as Map<String, dynamic>? ?? {};
-        return data; // token, user_id, user_name 포함
-      } else {
-        final message = resJson['message'] ?? '회원가입 실패';
-        throw Exception(message);
-      }
-    } catch (e) {
-      // 네트워크/파싱 오류 처리
-      throw Exception('회원가입 중 오류 발생: $e');
+   
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('auth_token', idToken);
+  }
+
+  
+  Future<void> login({
+    required String email,
+    required String password,
+  }) async {
+  
+    await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    
+    final String idToken = await getIdToken();
+
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('auth_token', idToken);
+  }
+
+  
+  Future<void> createUserOnBackend({
+    required String userName,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    if (token == null) {
+      throw Exception('토큰 없음');
+    }
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/users/'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'user_name': userName,
+      }),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('백엔드 사용자 생성 실패');
     }
   }
 
-  // 로그인
-  Future<Map<String, dynamic>> login({
-    required String user_id, // email
-    required String password,
-  }) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/api/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'user_id': user_id,
-          'password': password,
-        }),
-      );
+  // ✅ 4️⃣ 내 정보 조회 (/api/users/me)
+  Future<Map<String, dynamic>> getMyInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
 
-      final resJson = jsonDecode(response.body);
-
-      if (response.statusCode == 200 && resJson['success'] == true) {
-        final data = resJson['data'] as Map<String, dynamic>? ?? {};
-        return data; // token, user_id, user_name 포함
-      } else {
-        final message = resJson['message'] ?? '로그인 실패';
-        throw Exception(message);
-      }
-    } catch (e) {
-      throw Exception('로그인 중 오류 발생: $e');
+    if (token == null) {
+      throw Exception('저장된 토큰 없음');
     }
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/users/me'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('유저 정보 조회 실패');
+    }
+
+    return jsonDecode(response.body);
+  }
+
+  // ✅ 5️⃣ idToken 가져오기
+  Future<String> getIdToken() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('로그인된 유저 없음');
+    }
+
+    final String? token = await user.getIdToken();
+    if (token == null) {
+      throw Exception('토큰 발급 실패');
+    }
+    return token;
+  }
+
+  // ✅ 6️⃣ 로그아웃
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('auth_token');
+    await _auth.signOut();
   }
 }

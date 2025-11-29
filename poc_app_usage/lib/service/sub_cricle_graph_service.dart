@@ -1,37 +1,48 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../datas/circle_graph_data.dart';
-import 'package:poc_app_usage/utils/logger.dart';
+import '../utils/logger.dart';
 
 class SubCircleGraphService {
-  static const String _baseUrl = "https://YOUR_BACKEND";
+  static const String _baseUrl = "http://10.0.2.2:52141";
 
-  Future<List<CircleGraphData>> fetchCircleGraph(String month) async {
-  try {
-    final url = "$_baseUrl/api/circleGraph?month=$month";
-    final response = await http.get(Uri.parse(url));
+  Future<List<CircleGraphData>> fetchCircleGraph({
+    required String idToken,
+    required int year,
+    required int month,
+  }) async {
+    logger.d("✅ CircleChart 요청 토큰: $idToken");
+    try {
+      final url =
+          "$_baseUrl/api/subscriptions/monthly?year=$year&month=$month";
 
-    if (response.statusCode == 200) {
-      final body = utf8.decode(response.bodyBytes);
-      final decoded = jsonDecode(body);
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $idToken',
+        },
 
-      // 1) 데이터 리스트 추출
-      final List<dynamic> list =
-          decoded is Map && decoded['data'] is List
-              ? decoded['data']
-              : (decoded is List ? decoded : []);
+      );
 
-      // 2) 안전한 데이터 변환
-      return list
-          .map((json) => CircleGraphData.fromJson(json))
-          .toList();
+
+      
+
+      if (response.statusCode == 200) {
+        final body = utf8.decode(response.bodyBytes);
+        final List<dynamic> decoded = jsonDecode(body);
+
+        return decoded
+            .map((json) => CircleGraphData.fromJson(json))
+            .toList();
+      }
+
+      throw Exception("서버 오류: ${response.statusCode}");
+    } catch (e) {
+      throw Exception("CircleGraph error: $e");
     }
+  
 
-    return [];
-  } catch (e) {
-    logger.e("CircleGraph error: $e");
-    return [];
   }
+  
 }
 
-}

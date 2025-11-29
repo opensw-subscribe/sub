@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:app_usage/app_usage.dart';
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:poc_app_usage/screens/main_screen.dart';
@@ -16,7 +15,7 @@ class PermissionScreen extends StatefulWidget {
 
 class _PermissionScreenState extends State<PermissionScreen> with WidgetsBindingObserver {
   bool _isRequesting = false;
-  final AppUsage _appUsage = AppUsage();
+  
 
   @override
   void initState() {
@@ -41,44 +40,38 @@ class _PermissionScreenState extends State<PermissionScreen> with WidgetsBinding
     }
   }
 
-  Future<bool> _checkPermission() async {
-    try {
-      DateTime endDate = DateTime.now();
-      DateTime startDate = endDate.subtract(const Duration(seconds: 1));
-      await _appUsage.getAppUsage(startDate, endDate);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
+
 
   Future<void> _checkAndNavigate() async {
-    // 1. 앱 사용 권한이 있는지 먼저 확인
-    if (await _checkPermission()) {
-      
-      // 2. 권한이 있다면, SharedPreferences (기록 저장소)를 엽니다.
-      final prefs = await SharedPreferences.getInstance();
-      
-      // 3. 'platform_chosen'이라는 '기록'이 있는지 확인합니다. (기본값: false)
-      final bool hasChosenPlatform = prefs.getBool('platform_chosen') ?? false;
+  final prefs = await SharedPreferences.getInstance();
 
-      if (mounted) {
-        if (hasChosenPlatform) {
-          // '기록'이 있다면 (재방문) -> 메인 대시보드로 이동
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const MainDashboardScreen()),
-          );
-        } else {
-          // '기록'이 없다면 (최초 방문) -> 플랫폼 선택 화면으로 이동
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const ChoosePlatformScreen()),
-          );
-        }
-      }
+  final bool hasPermissionRecord =
+      prefs.getBool('permission_granted') ?? false;
+
+  final String? email = prefs.getString('email');
+  final bool hasChosenPlatform =
+      email == null ? false : (prefs.getBool('platform_chosen_$email') ?? false);
+
+  // ✅ 1단계: 기기 기준 권한 체크
+  if (!hasPermissionRecord) {
+    return; // 아직 권한 안받았으면 여기서 멈춤 → PermissionScreen 유지
+  }
+
+  // ✅ 2단계: 계정 기준 구독 선택 체크
+  if (mounted) {
+    if (hasChosenPlatform) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainDashboardScreen()),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const ChoosePlatformScreen()),
+      );
     }
   }
+}
 
   Future<bool> _isAndroid10OrAbove() async {
     if (!Platform.isAndroid) return false;
@@ -107,6 +100,11 @@ class _PermissionScreenState extends State<PermissionScreen> with WidgetsBinding
         action: 'android.settings.USAGE_ACCESS_SETTINGS',
       );
       await intent.launch();
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('permission_granted', true);
+
+
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
