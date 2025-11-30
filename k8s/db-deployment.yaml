@@ -35,11 +35,11 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: postgres-secret
-                  key: POSTGRES_PASSWORD   
+                  key: POSTGRES_PASSWORD  
           image: postgres:15
           livenessProbe:
             exec:
-              command: # 헬스케어에 한번 성공하면 이후로는 검사 x
+              command:
                 - /bin/sh
                 - -c
                 - pg_isready -U $POSTGRES_USER
@@ -54,8 +54,13 @@ spec:
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: postgres-data
+            - mountPath: /docker-entrypoint-initdb.d
+              name: db-init-scripts
       restartPolicy: Always
       volumes:
         - name: postgres-data
           persistentVolumeClaim:
             claimName: postgres-data
+        - name: db-init-scripts
+          configMap:
+            name: category-init
