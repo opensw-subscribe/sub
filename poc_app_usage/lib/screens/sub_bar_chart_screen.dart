@@ -46,24 +46,6 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
     return data;
   }
 
-  Future<void> _updateRating(BarGraphData data, int newRating) async {
-    final int oldRating = data.userSatis;
-    setState(() => data.userSatis = newRating);
-
-    try {
-      await _service.updateRating(
-        userId: data.userId,
-        appName: data.appName,
-        newRating: newRating,
-      );
-    } catch (e) {
-      setState(() => data.userSatis = oldRating);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("별점 수정 실패: $e")));
-    }
-  }
-
   // -------------------------
   // UI 구성 요소: 별점 위젯
   // -------------------------
@@ -136,50 +118,59 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
   // 개별 막대 위젯 (월 비용/1회 비용을 다른 막대로 표현)
   // -------------------------
   Widget _buildBar(BarGraphData data) {
-    const double maxHeight = 120.0;
+  const double maxHeight = 150.0;
 
-    // 월 비용 (Monthly Price) - 네이비색 막대
-    // Mock 데이터에서 가장 높은 serviceMonthlyPrice인 12000.0을 기준으로 스케일링
-    const double maxMonthlyPrice = 12000.0;
-    final double monthlyPriceHeight =
-        maxHeight * (data.serviceMonthlyPrice / maxMonthlyPrice);
+  final double maxMonthlyPrice = _statistics.isNotEmpty
+      ? _statistics
+            .map((e) => e.serviceMonthlyPrice)
+            .reduce((a, b) => a > b ? a : b)
+            .toDouble()
+      : 12000.0;
+  final int serviceMonthlyPrice= data.serviceMonthlyPrice;
+  final int serviceOncePrice =data.serviceOncePrice;
 
-    // 1회 비용 (Once Price) - 민트색 막대 (이미지의 '만족도' 막대로 사용됨)
-    // Mock 데이터에서 가장 높은 serviceOncePrice인 1980.0을 기준으로 스케일링
-    final double oncePriceHeight =
-        maxHeight * (data.serviceOncePrice / maxMonthlyPrice);
+  final double monthlyPriceHeight =
+      maxHeight * (serviceMonthlyPrice / maxMonthlyPrice);
+  final double oncePriceHeight =
+      maxHeight * (serviceOncePrice / maxMonthlyPrice);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          height: maxHeight,
-          child: Row(
+  return SizedBox(
+    height: maxHeight+200, // 막대 + 이름 높이 확보
+    child: Center( // 전체 영역 중앙
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end, // 막대를 아래쪽 정렬
+        children: [
+          Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              // 2. 월 비용 막대 (오른쪽, 네이비색)
               _buildSingleBar(
                 height: monthlyPriceHeight,
-                color: _monthlyPriceColor, // 변수 사용
+                color: _monthlyPriceColor,
                 maxHeight: maxHeight,
               ),
-
-              const SizedBox(width: 4),
-
-              // 1. 1회 비용 막대 (왼쪽, 민트색)
-              _buildSingleBar(
-                height: oncePriceHeight,
-                color: _oncePriceColor, // 변수 사용
-                maxHeight: maxHeight,
-              ),
+              const SizedBox(height: 4),
+              Text('월비용:$serviceMonthlyPrice', style: const TextStyle(fontSize: 12)),
             ],
           ),
-        ),
-        // ... (Item Name (X축 레이블) 유지)
-      ],
-    );
-  }
+          const SizedBox(width: 50),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildSingleBar(
+                height: oncePriceHeight,
+                color: _oncePriceColor,
+                maxHeight: maxHeight,
+              ),
+              const SizedBox(height: 4),
+              Text('일비용:$serviceOncePrice', style: TextStyle(fontSize: 12)),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
   // -------------------------
   // 단일 막대 위젯 (재사용성 향상)
@@ -188,13 +179,13 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
     required double height,
     required Color color,
     required double maxHeight,
-    double width = 10.0,
+    double width = 15.0,
   }) {
     return Stack(
       alignment: Alignment.bottomCenter,
       children: [
         // 배경 (최대 높이)
-        Container(width: width, height: maxHeight, color: Colors.grey[200]),
+        Container(width: width, height: maxHeight+30, color: Colors.grey[200]),
         // 실제 데이터 막대
         Container(
           width: width,
@@ -338,12 +329,21 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
   }
 
   Widget _buildChartForSelected() {
-    if (_selectedIndex == null) return SizedBox.shrink(); // 아무 것도 선택 안 됨
-
-    final BarGraphData data = _statistics[_selectedIndex!];
-
-    return _buildBar(data); // 실제 그래프 그리는 함수
-  }
+  return SizedBox(
+    height: 250, // 막대 영역 전체 높이 지정
+    child: Center(
+      child: _selectedIndex == null
+          ? Text(
+              '앱을 선택해주세요',
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[600]),
+            )
+          : _buildBar(_statistics[_selectedIndex!]),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -353,44 +353,44 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
         future: _statisticFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
             return Center(child: Text('데이터 로드 실패: ${snapshot.error}'));
           }
-          if (snapshot.hasData) {
-            _statistics = snapshot.data!;
-
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. 막대 그래프 영역
-                  _buildChartForSelected() ,
-                  const SizedBox(height: 24),
-
-                  // 2. 목록 제목
-                  const Text(
-                    '구독 서비스 목록',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // 3. 서비스 목록
-                  ListView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: _statistics.length,
-                    itemBuilder: (context, index) {
-                      return _buildListItem(_statistics[index]);
-                    },
-                  ),
-                ],
-              ),
-            );
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text('데이터를 불러올 수 없습니다.'));
           }
-          return const Center(child: Text('데이터를 불러올 수 없습니다.'));
+
+          _statistics = snapshot.data!;
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. 차트
+                Center(child: _buildChartForSelected()),
+                const SizedBox(height: 45),
+
+                // 2. 제목
+                const Text(
+                  '구독 서비스 목록',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+
+                // 3. 리스트
+                ListView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: _statistics.length,
+                  itemBuilder: (context, index) =>
+                      _buildListItem(_statistics[index]),
+                ),
+              ],
+            ),
+          );
         },
       ),
     );
