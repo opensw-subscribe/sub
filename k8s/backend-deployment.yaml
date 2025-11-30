@@ -24,6 +24,10 @@ spec:
     spec:
       containers:
         - env:
+            # 🔥 추가된 부분: 완벽한 DB 연결 URL을 구성하여 애플리케이션에 전달
+            - name: DATABASE_URL 
+              value: postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@db:5432/$(POSTGRES_DB)
+            # 기존 환경 변수들 (FastAPI 코드가 이들을 사용하지 않더라도 안전을 위해 유지)
             - name: FIREBASE_KEY_PATH
               value: /app/service_account_key.json
             - name: POSTGRES_DB
@@ -48,17 +52,17 @@ spec:
               value: "6379"
           image: fastapi-app:local
           name: fastapi-app
-          imagePullPolicy: IfNotPresent  # Docker Hub에서 찾지 못하게 설정
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
               protocol: TCP
           volumeMounts:
-            - name: firebase-key-volume  # secret_account_key을 변환한 
-              mountPath: /app/service_account_key.json 
+            - name: firebase-key-volume
+              mountPath: /app/service_account_key.json
               subPath: service_account_key.json
               readOnly: true
       restartPolicy: Always
       volumes:
-          - name: firebase-key-volume      
-            secret:                       
-              secretName: firebase-key-secret
+        - name: firebase-key-volume
+          secret:
+            secretName: firebase-key-secret
