@@ -40,12 +40,11 @@ class Subscription(Base):
     service_usage = Column(Integer, nullable=False)
     weekly_usage_hours = Column(Numeric(5,2), default=0)
     user_satis = Column(SmallInteger, nullable=False)
-    month = Column(Integer, nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     month = Column(String, nullable=False, default=lambda: datetime.utcnow().strftime("%Y-%m"))
-    
+
     user = relationship("User", back_populates="subscriptions")
     category = relationship("Category", back_populates="subscriptions")
     analysis_results = relationship("AnalysisResult", back_populates="subscription")
