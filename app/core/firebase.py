@@ -23,7 +23,7 @@ async def firebase_auth(request: Request):
 
     id_token = auth_header.split(" ")[1]
     try:
-        decoded_token = auth.verify_id_token(id_token)
+        decoded_token = auth.verify_id_token(id_token, clock_skew_seconds=10)
         request.state.user_id = decoded_token["uid"]  # 필요 시 라우터에서 사용 가능
         return decoded_token
     except Exception as e:
