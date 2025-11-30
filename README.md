@@ -29,7 +29,7 @@ kubectl create secret generic firebase-key-secret --from-file=service_account_ke
 
 ### 5️⃣ Postgres Secret 생성
 ```powershell
-kubectl create secret generic postgres-secret --from-literal=POSTGRES_USER=admin --from-literal=POSTGRES_PASSWORD=1234
+kubectl create secret generic postgres-secret --from-literal=POSTGRES_USER=postgres --from-literal=POSTGRES_PASSWORD=1234
 ```
 * PowerShell에서는 위 명령어 그대로 사용가능
 * CMD에서는 줄바꿈 시 ^ 대신 \ 사용
