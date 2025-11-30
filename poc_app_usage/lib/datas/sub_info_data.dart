@@ -22,9 +22,9 @@ class SubInfoData {
       userId: json['user_id'],
       appName: json['app_name'],
       appCategory: json['app_category'],
-      serviceMonthlyPrice: json['service_monthly_price'],
-      serviceUsageTime: json['service_usage_time'],
-      serviceUsage: json['service_usage'],
+      serviceMonthlyPrice: (json['service_monthly_price'] as num).toInt(),
+      serviceUsageTime: (json['service_usage_time'] as num).toInt(),
+      serviceUsage: (json['service_usage']as num).toInt(),
       userSatis: json['user_satis'],
     );
   }

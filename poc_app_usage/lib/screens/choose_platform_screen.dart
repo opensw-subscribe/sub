@@ -12,7 +12,7 @@ import '../utils/logger.dart';
 
 class ChoosePlatformScreen extends StatefulWidget {
   const ChoosePlatformScreen({super.key});
-
+  
   @override
   State<ChoosePlatformScreen> createState() => _ChoosePlatformScreenState();
 }

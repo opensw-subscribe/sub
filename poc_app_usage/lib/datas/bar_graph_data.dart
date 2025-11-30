@@ -1,4 +1,6 @@
 
+import 'dart:ffi';
+
 /// 구독 서비스 통계 데이터를 나타내는 모델 클래스
 class BarGraphData{
   final String userId;
@@ -24,8 +26,8 @@ class BarGraphData{
       appName: json['app_name'] as String,
       appCategory: json['app_category'] as String,
       // API 응답의 타입이 확실하지 않다면 .toInt() 또는 안전한 파싱 로직을 추가합니다.
-      serviceMonthlyPrice: json['service_monthly_price'] as int,
-      serviceOncePrice: json['service_once_price'] as int,
+      serviceMonthlyPrice: (json['service_monthly_price'] as num).toInt(),
+      serviceOncePrice: (json['service_once_price'] as num).toInt(),
       userSatis: json['user_satis'] as int,
     );
   }

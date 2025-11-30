@@ -1,5 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // 파이어베이스 추가
+import 'package:http/http.dart' as http;
+import 'package:poc_app_usage/config.dart';
+import 'package:poc_app_usage/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // 토큰 저장용
 import 'package:poc_app_usage/screens/signup_screen.dart';
 import 'package:poc_app_usage/widgets/custom_text_field.dart';
@@ -15,7 +20,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   // 아이디(이메일)와 비번 컨트롤러
-  final TextEditingController _emailController = TextEditingController(); 
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   bool _emailError = false;
@@ -48,34 +53,56 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    setState(() { _isLoading = true; _errorMsg = null; });
+    setState(() {
+      _isLoading = true;
+      _errorMsg = null;
+    });
 
     try {
-      // 2. [Firebase] 로그인 시도 (백엔드 아님! 파이어베이스가 처리함)
-      final UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      // 1. Firebase 로그인
+      final UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
 
-      // 3. 로그인 성공 후 토큰 저장 (자동 로그인 및 백엔드 통신용)
       final User? user = userCredential.user;
+
       if (user != null) {
+        // 2. Firebase ID Token 가져오기
         final String? token = await user.getIdToken();
-        
-        if (token != null) {
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('auth_token', token);
+        logger.d(token); 
+
+        if (token == null) {
+          throw Exception("ID Token을 가져오지 못했습니다.");
         }
 
-        // 4. 메인 화면으로 이동
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const MainDashboardScreen()),
-          );
+        // 3. 서버에서 내 정보 조회
+        final url = Uri.parse('${Config.baseUrl}/api/users/me');
+        final response = await http.get(
+          url,
+          headers: {'Authorization': 'Bearer $token'},
+        );
+
+        if (response.statusCode != 200) {
+          throw Exception("서버에서 사용자 정보를 가져오지 못했습니다.");
         }
+
+        final body = utf8.decode(response.bodyBytes);
+        final decoded = jsonDecode(body);
+
+        final userName = decoded['user_name'];
+
+        // 4. 로컬 저장 (자동로그인용)
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_token', token);
+        await prefs.setString('user_name', userName);
+
+        // 5. 메인 화면 이동
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => MainDashboardScreen(),
+          ),
+        );
       }
-
     } on FirebaseAuthException catch (e) {
       // 파이어베이스 에러 메시지 처리 (한국어로 변환)
       String message = '로그인 실패';
@@ -86,14 +113,20 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         message = '로그인 오류: ${e.message}';
       }
-      setState(() { _errorMsg = message; });
-
+      setState(() {
+        _errorMsg = message;
+      });
     } catch (e) {
       // 기타 에러
-      setState(() { _errorMsg = '알 수 없는 오류가 발생했습니다.'; });
+      logger.d('알 수 없는 오류: $e');
+      setState(() {
+        _errorMsg = '알 수 없는 오류가 발생했습니다.';
+      });
     } finally {
       if (mounted) {
-        setState(() { _isLoading = false; });
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
@@ -105,9 +138,9 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch, 
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 64), 
+              const SizedBox(height: 64),
               SizedBox(
                 height: 40,
                 child: Stack(
@@ -128,7 +161,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           // 회원가입 화면으로 이동
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => const SignupScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => const SignupScreen(),
+                            ),
                           );
                         },
                         child: Text(
@@ -145,7 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-              
+
               // 이메일 입력
               CustomTextField(
                 key: ValueKey('email_${_emailError.toString()}'),
@@ -159,7 +194,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              
+
               // 비밀번호 입력
               CustomTextField(
                 key: ValueKey('pw_${_passwordError.toString()}'),
@@ -174,35 +209,42 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
               ),
               const SizedBox(height: 32),
-              
+
               // 에러 메시지
               if (_errorMsg != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8.0),
                   child: Text(
-                    _errorMsg!, 
+                    _errorMsg!,
                     style: const TextStyle(color: Colors.red, fontSize: 13),
                     textAlign: TextAlign.center,
                   ),
                 ),
-                
+
               // 로그인 버튼
               ElevatedButton(
                 onPressed: _isLoading ? null : _login,
                 child: _isLoading
-                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('로그인'),
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('로그인'),
               ),
               const SizedBox(height: 16),
-              
+
               // 비밀번호 찾기 (기능은 나중에 구현)
               Center(
                 child: TextButton(
                   onPressed: () {
-                     // 나중에 FirebaseAuth.instance.sendPasswordResetEmail(email: ...) 쓰면 됨
-                     ScaffoldMessenger.of(context).showSnackBar(
-                       const SnackBar(content: Text('준비 중인 기능입니다.')),
-                     );
+                    // 나중에 FirebaseAuth.instance.sendPasswordResetEmail(email: ...) 쓰면 됨
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('준비 중인 기능입니다.')),
+                    );
                   },
                   child: const Text(
                     '비밀번호를 잊으셨습니까?',

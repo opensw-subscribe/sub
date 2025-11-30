@@ -15,7 +15,7 @@ class CircleGraphData {
     return CircleGraphData(
       userId: json['user_id'] as String,
       appName: json['app_name'] as String,
-      serviceMonthlyPrice: json['service_monthly_price'] as int,
+      serviceMonthlyPrice: (json['service_monthly_price'] as num).toInt(),
     );
   }
 }
