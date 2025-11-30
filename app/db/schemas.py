@@ -31,8 +31,8 @@ class SubscriptionBase(BaseModel):
     is_active: Optional[bool] = True
 
     model_config = ConfigDict(
-        from_attributes=True,  # orm_mode 대체
-        populate_by_name=True  # alias (id)를 사용할 수 있도록 설정
+        from_attributes=True,  
+        populate_by_name=True 
     )
             
 class SubscriptionCreate(BaseModel):
