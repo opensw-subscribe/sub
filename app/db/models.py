@@ -43,7 +43,8 @@ class Subscription(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
+    month = Column(String, nullable=False, default=lambda: datetime.utcnow().strftime("%Y-%m"))
+    
     user = relationship("User", back_populates="subscriptions")
     category = relationship("Category", back_populates="subscriptions")
     analysis_results = relationship("AnalysisResult", back_populates="subscription")
