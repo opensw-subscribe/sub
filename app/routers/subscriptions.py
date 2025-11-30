@@ -79,7 +79,7 @@ def delete_subscription(sub_id: int, user=Depends(firebase_auth), db: Session = 
     db.commit()
     return {"success": True, "message": f"Subscription {sub_id} deleted"}
 
-#앱 만족도 수정
+# 앱 만족도 수정
 @router.patch("/rating")
 def update_subscription_rating(
     payload: schemas.SubscriptionRatingUpdateRequest,
@@ -101,9 +101,9 @@ def update_subscription_rating(
         raise HTTPException(status_code=404, detail="Subscription not found")
 
     # 3) 만족도 업데이트
-    db_sub.user_satis = payload.user_statis
+    db_sub.user_satis = payload.user_satis
     db.commit()
     db.refresh(db_sub)
 
     # 4) dict로 반환
-    return {"success": True, "message": ""}
+    return {"success": True, "message": "Subscription rating updated"}
