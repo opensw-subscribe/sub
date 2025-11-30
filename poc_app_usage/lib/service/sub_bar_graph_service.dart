@@ -57,42 +57,40 @@ class BarGraphService {
   }
 }
 
-  /// 별점 수정
-  /// 별점 수정
   Future<void> updateRating({
-    required String appName,
-    required int newRating,
-    String? month, // 필요시 month 전달 가능
-  }) async {
-    // 1. Firebase 토큰 가져오기
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      throw Exception("로그인이 필요합니다.");
-    }
-    final String? token = await user.getIdToken();
-    if (token == null) {
-      throw Exception("인증 토큰을 가져올 수 없습니다.");
-    }
+  required String userId,
+  required String appName,
+  required int newRating,
+}) async {
+  // 1) Firebase Token 가져오기
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) throw Exception("로그인이 필요합니다.");
 
-    final url = Uri.parse("$_baseUrl/api/subscription/rating");
+  final token = await user.getIdToken();
 
-    final body = {
-      "app_name": appName,
-      "user_satis": newRating,
-      if (month != null) "month": month,
-    };
+  // 2) URL 준비
+  final url = Uri.parse("$_baseUrl/api/subscriptions/rating");
 
-    final response = await http.patch(
-      url,
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $token",
-      },
-      body: jsonEncode(body),
-    );
+  // 3) 요청 Body
+  final body = {
+    "user_id": userId,
+    "app_name": appName,
+    "user_satis": newRating,
+  };
 
-    if (response.statusCode != 200) {
-      throw Exception("서버 오류: ${response.statusCode}");
-    }
+  // 4) 인증 포함 PATCH 요청
+  final response = await http.patch(
+    url,
+    headers: {
+      "Authorization": "Bearer $token", 
+      "Content-Type": "application/json",
+    },
+    body: jsonEncode(body),
+  );
+
+  if (response.statusCode != 200) {
+    throw Exception("서버 오류: ${response.statusCode}");
   }
+}
+
 }

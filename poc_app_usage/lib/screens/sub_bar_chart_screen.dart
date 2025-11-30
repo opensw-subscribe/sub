@@ -7,9 +7,7 @@ import '../datas/bar_graph_data.dart'; // Statistic 모델 import 필요
 import '../service/sub_bar_graph_service.dart'; // StatisticService import 필요
 
 class SubBarGraphScreen extends StatefulWidget {
-  final String month;
-
-  const SubBarGraphScreen(this.month, {super.key});
+  const SubBarGraphScreen(String month, {super.key});
 
   @override
   State<SubBarGraphScreen> createState() => _SubBarGraphScreenState();
@@ -20,6 +18,7 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
   final BarGraphService _service = BarGraphService();
   late Future<List<BarGraphData>> _statisticFuture;
   List<BarGraphData> _statistics = [];
+  int? _selectedIndex; // 현재 선택된 항목 인덱스, null이면 아무 것도 선택되지 않음
 
   // 막대 그래프와 목록에 사용될 일관된 색상 정의
   final Color _oncePriceColor = Colors.teal.shade400; // 1회 비용/만족도 막대 (민트색)
@@ -53,6 +52,7 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
 
     try {
       await _service.updateRating(
+        userId: data.userId,
         appName: data.appName,
         newRating: newRating,
       );
@@ -63,7 +63,6 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
       ).showSnackBar(SnackBar(content: Text("별점 수정 실패: $e")));
     }
   }
-
 
   // -------------------------
   // UI 구성 요소: 별점 위젯
@@ -224,51 +223,84 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
           (Match m) => '${m[1]},',
         );
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // 1. 색상 점 (월 비용 색상으로 통일)
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(color: listColor, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 8),
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedIndex = (_selectedIndex == index)
+              ? null
+              : index; // 이미 선택된 항목이면 해제
+        });
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // 1. 색상 점 (월 비용 색상으로 통일)
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: listColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 8),
 
-          // 2. 앱 이름 (Expanded로 나머지 공간 모두 확보)
-          Expanded(
-            child: Text(data.appName, style: const TextStyle(fontSize: 16)),
-          ),
+            // 2. 앱 이름 (Expanded로 나머지 공간 모두 확보)
+            Expanded(
+              child: Text(data.appName, style: const TextStyle(fontSize: 16)),
+            ),
 
-          // 3. 별점 표시 (정렬을 위해 고정된 SizedBox 안에 넣습니다)
-          //  별점 너비를 고정하여 앱 이름 길이에 상관없이 정렬되도록 함 (대략적인 너비 120.0 사용)
-          SizedBox(
-            width: 120.0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end, // 오른쪽 정렬
-              children: [
-                _buildStarRating(
-                  rating: data.userSatis,
-                  onChanged: (newRating) => _updateRating(data, newRating),
+            // 3. 별점 표시 (정렬을 위해 고정된 SizedBox 안에 넣습니다)
+            //  별점 너비를 고정하여 앱 이름 길이에 상관없이 정렬되도록 함 (대략적인 너비 120.0 사용)
+            SizedBox(
+              width: 120.0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end, // 오른쪽 정렬
+                children: [
+                  _buildStarRating(
+                    rating: data.userSatis, // ⭐ 각 항목의 개인별 별점 사용!
+                    onChanged: (newRating) async {
+                      final oldRating = data.userSatis;
+
+                      setState(() {
+                        data.userSatis = newRating; // UI 즉시 변경
+                      });
+
+                      try {
+                        await _service.updateRating(
+                          userId: data.userId,
+                          appName: data.appName,
+                          newRating: newRating,
+                        );
+                      } catch (e) {
+                        setState(() {
+                          data.userSatis = oldRating; // 실패하면 UI 복원
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(width: 30),
+
+            // 4. 월 비용 표시 (Text는 기본적으로 콘텐츠 크기만큼 공간 차지)
+            SizedBox(
+              width: 70,
+              child: Text(
+                formattedPrice,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
-              ],
+              ),
             ),
-          ),
-
-          const SizedBox(width: 30),
-
-          // 4. 월 비용 표시 (Text는 기본적으로 콘텐츠 크기만큼 공간 차지)
-          SizedBox(
-            width: 70,
-            child: Text(
-              formattedPrice,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -294,12 +326,7 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
               MaterialPageRoute(
                 builder: (context) => const ChoosePlatformScreen(),
               ),
-            ).then((_) {
-              // 돌아왔을 때 데이터 새로고침
-              setState(() {
-                _statisticFuture = _fetchAndGroupDataByMonth();
-              });
-            });
+            );
           },
 
           child: const Text('목록편집', style: TextStyle(color: Colors.blue)),
@@ -308,6 +335,14 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
       backgroundColor: Colors.white,
       elevation: 0,
     );
+  }
+
+  Widget _buildChartForSelected() {
+    if (_selectedIndex == null) return SizedBox.shrink(); // 아무 것도 선택 안 됨
+
+    final BarGraphData data = _statistics[_selectedIndex!];
+
+    return _buildBar(data); // 실제 그래프 그리는 함수
   }
 
   @override
@@ -327,12 +362,12 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
             _statistics = snapshot.data!;
 
             return SingleChildScrollView(
-              padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 40.0),
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // 1. 막대 그래프 영역
-                  _buildChartPlaceholder(),
+                  _buildChartForSelected() ,
                   const SizedBox(height: 24),
 
                   // 2. 목록 제목
@@ -361,6 +396,3 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
     );
   }
 }
-/*
-}
-*/
