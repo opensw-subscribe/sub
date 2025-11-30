@@ -8,6 +8,8 @@ import 'package:poc_app_usage/screens/write_sub_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:poc_app_usage/screens/main_screen.dart';
 import 'package:poc_app_usage/service/usage_service.dart';
+import 'package:poc_app_usage/service/sub_info_service.dart';
+import 'package:poc_app_usage/datas/sub_info_data.dart';
 import '../utils/logger.dart';
 
 class ChoosePlatformScreen extends StatefulWidget {
@@ -27,10 +29,18 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
   @override
   void initState() {
     super.initState();
-    _loadSelectedServices();
+    _initData();
   }
 
-  // SharedPreferences에서 선택된 서비스 목록 불러오기
+  // 초기화: 백엔드 동기화 후 로컬 데이터 로드
+  Future<void> _initData() async {
+    await _syncWithBackend();
+    if (mounted) {
+      await _loadSelectedServices();
+    }
+  }
+
+  // SharedPreferences에서 선택된 서비스 목록 불러오기 (동기화 X)
   Future<void> _loadSelectedServices() async {
     final prefs = await SharedPreferences.getInstance();
     final allKeys = prefs.getKeys();
@@ -51,10 +61,55 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
     });
   }
 
+  // 백엔드 데이터와 로컬 데이터 동기화
+  Future<void> _syncWithBackend() async {
+    try {
+      final subInfoService = SubInfoService();
+      // 백엔드에서 구독 목록 가져오기
+      final List<SubInfoData> backendData = await subInfoService.fetchSubInfoData();
+      
+      final prefs = await SharedPreferences.getInstance();
+      
+      // 1. 서버 데이터를 로컬에 저장/업데이트
+      final Set<String> serverAppNames = {};
+      for (var item in backendData) {
+        serverAppNames.add(item.appName);
+        await prefs.setString('${item.appName}_fee', item.serviceMonthlyPrice.toString());
+        await prefs.setString('${item.appName}_category', item.appCategory);
+      }
+      
+      // 2. 서버에 없는 로컬 데이터 삭제 (완전 동기화)
+      final allKeys = prefs.getKeys().where((k) => k.endsWith('_fee')).toList();
+      for (var key in allKeys) {
+        String appName = key.replaceAll('_fee', '');
+        if (!serverAppNames.contains(appName)) {
+           await prefs.remove(key);
+           await prefs.remove('${appName}_category');
+           logger.d('🗑️ 로컬 삭제 (서버 동기화): $appName');
+        }
+      }
+      logger.d('✅ 백엔드 동기화 완료 (${backendData.length}개)');
+      
+    } catch (e) {
+      logger.w('⚠️ 백엔드 동기화 실패: $e');
+    }
+  }
+
   // 서비스 삭제
   Future<void> _removeService(String appName) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('${appName}_fee');
+    await prefs.remove('${appName}_category'); // 카테고리도 삭제
+
+    // 백엔드에서도 삭제 시도
+    try {
+      final subInfoService = SubInfoService();
+      await subInfoService.deleteSubInfoData(appName);
+      logger.d('✅ 백엔드 삭제 성공: $appName');
+    } catch (e) {
+      logger.w('⚠️ 백엔드 삭제 실패 (로컬에서만 삭제됨): $e');
+    }
+
     setState(() {
       _selectedServices.remove(appName);
       _servicePrices.remove(appName);
@@ -275,14 +330,16 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
 
                   const SizedBox(height: 12),
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const WriteSubScreen(),
-                        ),
-                      );
-                    },
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const WriteSubScreen(),
+                          ),
+                        ).then((_) {
+                          if (mounted) _loadSelectedServices();
+                        });
+                      },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.black,
@@ -308,7 +365,7 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
           // 하단 선택된 서비스 리스트
           if (_selectedServices.isNotEmpty)
             Container(
-              height: 120,
+              height: 200, // 세로 리스트를 위해 높이 증가
               decoration: BoxDecoration(
                 color: Colors.grey[100],
                 border: Border(top: BorderSide(color: Colors.grey[300]!)),
@@ -331,14 +388,17 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
                     ),
                   ),
                   Expanded(
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      itemCount: _selectedServices.length,
-                      itemBuilder: (context, index) {
-                        final appName = _selectedServices.elementAt(index);
-                        return _buildSelectedServiceChip(appName);
-                      },
+                    child: Scrollbar( // 스크롤바 추가
+                      thumbVisibility: true,
+                      child: ListView.builder(
+                        scrollDirection: Axis.vertical, // 세로 스크롤
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        itemCount: _selectedServices.length,
+                        itemBuilder: (context, index) {
+                          final appName = _selectedServices.elementAt(index);
+                          return _buildSelectedServiceChip(appName);
+                        },
+                      ),
                     ),
                   ),
                 ],
@@ -383,10 +443,10 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
       key: Key(appName),
       direction: DismissDirection.endToStart, // 좌측으로 스와이프 (오른쪽에서 왼쪽으로)
       background: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        margin: const EdgeInsets.symmetric(vertical: 4),
         decoration: BoxDecoration(
           color: Colors.red,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(12), // 둥근 모서리 수정
         ),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
@@ -402,33 +462,35 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
         );
       },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        width: double.infinity, // 가로 꽉 차게
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: const Color(0xFF1A237E)),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              appName,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1A237E),
+            Expanded(
+              child: Text(
+                appName,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1A237E),
+                ),
               ),
             ),
             if (_servicePrices.containsKey(appName)) ...[
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
               Text(
                 '월 ${_servicePrices[appName]}원',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
               ),
             ],
-            const SizedBox(width: 4),
-            const Icon(Icons.check_circle, size: 18, color: Color(0xFF1A237E)),
+            const SizedBox(width: 12),
+            const Icon(Icons.check_circle, size: 20, color: Color(0xFF1A237E)),
           ],
         ),
       ),

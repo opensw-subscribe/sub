@@ -5,8 +5,9 @@ import '../datas/circle_graph_data.dart';// CircleGraphData 모델 import 필요
 import '../service/sub_cricle_graph_service.dart'; // CircleGraphService import 필요
 
 class SubCircleChartScreen extends StatefulWidget {
+  final String month;
 
-  const SubCircleChartScreen(String month, {super.key});
+  const SubCircleChartScreen(this.month, {super.key});
 
   @override
   State<SubCircleChartScreen> createState() => _SubCircleChartScreenState();
@@ -89,7 +90,13 @@ class _SubCircleChartScreenState extends State<SubCircleChartScreen> {
               ),
             ),
             const SizedBox(width: 8),
-            Text(data.appName, style: const TextStyle(fontSize: 14)),
+            Expanded(
+              child: Text(
+                data.appName,
+                style: const TextStyle(fontSize: 14),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         );
       }),
@@ -167,10 +174,15 @@ class _SubCircleChartScreenState extends State<SubCircleChartScreen> {
               MaterialPageRoute(
                 builder: (context) => const ChoosePlatformScreen(),
               ),
-            );
+            ).then((_) {
+              // 돌아왔을 때 데이터 새로고침
+              setState(() {
+                _statisticFuture = fetchAndGroupDataByMonth();
+              });
+            });
           },
 
-          child: const Text('서비스 추가', style: TextStyle(color: Colors.blue)),
+          child: const Text('목록편집', style: TextStyle(color: Colors.blue)),
         ),
       ],
         backgroundColor: Colors.white,

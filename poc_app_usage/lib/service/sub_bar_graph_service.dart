@@ -58,16 +58,25 @@ class BarGraphService {
 }
 
   /// 별점 수정
+  /// 별점 수정
   Future<void> updateRating({
-    required String userId,
     required String appName,
     required int newRating,
     String? month, // 필요시 month 전달 가능
   }) async {
+    // 1. Firebase 토큰 가져오기
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw Exception("로그인이 필요합니다.");
+    }
+    final String? token = await user.getIdToken();
+    if (token == null) {
+      throw Exception("인증 토큰을 가져올 수 없습니다.");
+    }
+
     final url = Uri.parse("$_baseUrl/api/subscription/rating");
 
     final body = {
-      "user_id": userId,
       "app_name": appName,
       "user_satis": newRating,
       if (month != null) "month": month,
@@ -75,7 +84,10 @@ class BarGraphService {
 
     final response = await http.patch(
       url,
-      headers: {"Content-Type": "application/json"},
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
       body: jsonEncode(body),
     );
 

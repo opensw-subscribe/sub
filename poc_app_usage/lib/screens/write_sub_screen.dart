@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../utils/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class WriteSubScreen extends StatefulWidget {
   const WriteSubScreen({super.key});
@@ -60,7 +61,7 @@ class _WriteSubScreenState extends State<WriteSubScreen> {
     );
   }
 
-  void _submitData() {
+  Future<void> _submitData() async {
     final appName = appNameController.text.trim();
     final category = selectedCategory;
     final fee = feeController.text.trim();
@@ -72,20 +73,25 @@ class _WriteSubScreenState extends State<WriteSubScreen> {
       return;
     }
 
-    logger.d('입력된 앱 이름: $appName');
-    logger.d('입력된 요금제: $fee $selectedCurrency');
-    logger.d('선택된 카테고리: $category');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('${appName}_fee', fee);
+      await prefs.setString('${appName}_category', category);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('앱 정보가 저장되었습니다!')),
-    );
+      logger.d('저장 완료: $appName, $fee, $category');
 
-    appNameController.clear();
-    feeController.clear();
-    setState(() {
-      selectedCategory = null;
-      selectedCurrency = '₩';
-    });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('앱 정보가 저장되었습니다!')),
+      );
+
+      Navigator.pop(context, true); // 성공 시 true 반환
+    } catch (e) {
+      logger.e('저장 실패: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('저장 중 오류가 발생했습니다: $e')),
+      );
+    }
   }
 
   @override

@@ -7,8 +7,9 @@ import '../datas/bar_graph_data.dart'; // Statistic 모델 import 필요
 import '../service/sub_bar_graph_service.dart'; // StatisticService import 필요
 
 class SubBarGraphScreen extends StatefulWidget {
+  final String month;
 
-  const SubBarGraphScreen(String month, {super.key});
+  const SubBarGraphScreen(this.month, {super.key});
 
   @override
   State<SubBarGraphScreen> createState() => _SubBarGraphScreenState();
@@ -52,7 +53,6 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
 
     try {
       await _service.updateRating(
-        userId: data.userId,
         appName: data.appName,
         newRating: newRating,
       );
@@ -294,10 +294,15 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
               MaterialPageRoute(
                 builder: (context) => const ChoosePlatformScreen(),
               ),
-            );
+            ).then((_) {
+              // 돌아왔을 때 데이터 새로고침
+              setState(() {
+                _statisticFuture = _fetchAndGroupDataByMonth();
+              });
+            });
           },
 
-          child: const Text('서비스 추가', style: TextStyle(color: Colors.blue)),
+          child: const Text('목록편집', style: TextStyle(color: Colors.blue)),
         ),
       ],
       backgroundColor: Colors.white,
@@ -322,7 +327,7 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
             _statistics = snapshot.data!;
 
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 40.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

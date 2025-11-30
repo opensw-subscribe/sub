@@ -30,28 +30,37 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('jwtToken');
 
-    final response = await http.get(
-      Uri.parse('$_baseUrl$_endpoint'),
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
-    );
+    if (token == null) return;
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      setState(() {
-        userName = data['userName']; // 백엔드 응답 구조에 맞게
-      });
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl$_endpoint'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (mounted) {
+          setState(() {
+            userName = data['userName'];
+          });
+        }
+      }
+    } catch (e) {
+      logger.e("Error loading user info: $e");
     }
   }
+
   // 현재 선택된 탭 번호 (0: 홈, 1: 원형, 2: 막대, 3: What-if)
   int _selectedIndex = 0;
   final now = DateTime.now();
   late final String _month = "${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}";
 
-  // 탭별로 보여줄 화면 리스트 정의 (순서대로)
-  late final List<Widget> _widgetOptions = <Widget>[
-    HomeScreen(userName: userName ?? "사용자"),           // 0번: 메인 홈 (사용자님이 보내주신 파일)
+  // 탭별로 보여줄 화면 리스트 정의 (Getter로 변경하여 상태 변경 반영)
+  List<Widget> get _widgetOptions => <Widget>[
+    HomeScreen(userName: userName ?? "사용자"),           // 0번: 메인 홈
     SubCircleChartScreen(_month), // 1번: 원형 차트 (Insights)
     SubBarGraphScreen(_month),    // 2번: 막대 차트 (Chart)
     SubWhatIfScreen(_month),      // 3번: What-If
@@ -61,16 +70,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    // 앱 사용 시간 가져와서 백엔드에 넘기는 함수 호출
-    _analyzeAndSendUsage();
-  }
-
-  // UsageService를 실행하는 함수
-  Future<void> _analyzeAndSendUsage() async {
-    logger.d("MainDashboard: UsageService 실행 시작...");
-    // (사용자 눈에 안 보이게 백그라운드에서 조용히 실행)
-    await UsageService().sendUsageDataToBackend();
-    logger.d("MainDashboard: UsageService 실행 완료.");
+    loadUserInfo();
   }
 
   // 탭을 눌렀을 때 실행되는 함수

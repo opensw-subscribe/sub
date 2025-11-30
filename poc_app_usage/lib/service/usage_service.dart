@@ -82,6 +82,23 @@ class UsageService {
       final String? token = await user.getIdToken();
       if (token == null) return;
 
+      // 1-1. 사용자 ID 가져오기 (백엔드 요구사항에 맞춤)
+      String? userId;
+      try {
+        final userResponse = await http.get(
+          Uri.parse('${Config.baseUrl}/api/user/me'),
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        );
+        if (userResponse.statusCode == 200) {
+          final userData = jsonDecode(userResponse.body);
+          userId = userData['userId'];
+        }
+      } catch (e) {
+        logger.w("사용자 ID 가져오기 실패: $e");
+      }
+
       final prefs = await SharedPreferences.getInstance();
       final allKeys = prefs.getKeys();
       
@@ -95,7 +112,52 @@ class UsageService {
 
       int successCount = 0;
 
-      // 2. 반복문 시작
+      // 백엔드에 저장된 구독 정보 가져오기 (동기화용)
+      // userId가 있으면 쿼리 파라미터로 전달
+      String getUrl = '${Config.baseUrl}/api/subscriptions';
+      if (userId != null) {
+        getUrl += '?user_id=$userId';
+      }
+
+      final getResponse = await http.get(
+        Uri.parse(getUrl),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      // 백엔드 데이터 파싱 (ID 포함)
+      List<Map<String, dynamic>> backendSubs = [];
+      if (getResponse.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(utf8.decode(getResponse.bodyBytes));
+        backendSubs = data.map((e) => e as Map<String, dynamic>).toList();
+      }
+
+      // 로컬에 없는 앱 삭제 (동기화)
+      for (var sub in backendSubs) {
+        String backendAppName = sub['app_name'];
+        int? subId = sub['sub_id'];
+
+        // 로컬 키 목록에 해당 앱이 있는지 확인
+        bool existsLocally = allKeys.contains('${backendAppName}_fee');
+        
+        if (!existsLocally && subId != null) {
+          // 로컬에 없으면 백엔드에서 삭제 (ID 기반)
+          String deleteUrl = '${Config.baseUrl}/api/subscriptions/$subId';
+          
+          final deleteResponse = await http.delete(
+            Uri.parse(deleteUrl),
+            headers: {
+              'Authorization': 'Bearer $token',
+            },
+          );
+          if (deleteResponse.statusCode == 200 || deleteResponse.statusCode == 204) {
+            logger.i("🗑️ $backendAppName 삭제됨 (동기화, ID: $subId)");
+          }
+        }
+      }
+
+      // 2. 반복문 시작 (로컬 데이터 -> 백엔드 전송)
       for (String key in allKeys) {
         if (!key.endsWith('_fee')) continue;
         
@@ -103,26 +165,33 @@ class UsageService {
         String? feeString = prefs.getString(key);
         String? packageName = _packageMap[appName];
 
-        if (feeString != null && packageName != null) {
+        if (feeString != null) {
           // 사용 시간 매칭
           AppUsageInfo? matchingInfo;
-          try {
-            matchingInfo = usageInfos.firstWhere((info) => info.packageName == packageName);
-          } catch (_) {
-            matchingInfo = null;
+          if (packageName != null) {
+            try {
+              matchingInfo = usageInfos.firstWhere((info) => info.packageName == packageName);
+            } catch (_) {
+              matchingInfo = null;
+            }
           }
 
           int usageMinutes = matchingInfo?.usage.inMinutes ?? 0;
           
           // 카테고리 ID 변환 (문자열 -> 숫자)
-          String categoryStr = _categoryStringMap[appName] ?? '기타';
+          // SharedPrefs에 저장된 카테고리가 있으면 우선 사용
+          String? storedCategory = prefs.getString('${appName}_category');
+          String categoryStr = storedCategory ?? _categoryStringMap[appName] ?? '기타';
           int categoryId = _categoryIdMap[categoryStr] ?? 1; // 없으면 기본값 1
           
           // 가격 변환
           double monthlyPrice = double.tryParse(feeString) ?? 0.0;
 
           // 실행 횟수 매칭
-          int launchCount = launchCounts[packageName] ?? 0;
+          int launchCount = 0;
+          if (packageName != null) {
+            launchCount = launchCounts[packageName] ?? 0;
+          }
 
           // 3. [중요] 백엔드 스키마(SubscriptionCreate)에 맞춰서 데이터 포장
           Map<String, dynamic> bodyData = {
@@ -136,6 +205,10 @@ class UsageService {
             "user_satis": 5, // 기본값
             "is_active": true
           };
+          
+          if (userId != null) {
+            bodyData["user_id"] = userId;
+          }
 
           // 4. [중요] 반복문 안에서 하나씩 전송
           final response = await http.post(

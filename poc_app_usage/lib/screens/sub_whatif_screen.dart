@@ -71,7 +71,7 @@ class _SubWhatIfScreenState extends State<SubWhatIfScreen> {
             );
           },
 
-          child: const Text('서비스 추가', style: TextStyle(color: Colors.blue)),
+          child: const Text('목록편집', style: TextStyle(color: Colors.blue)),
         ),
       ],
       backgroundColor: Colors.white,
