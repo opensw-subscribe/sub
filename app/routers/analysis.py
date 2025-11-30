@@ -4,7 +4,7 @@ from app.db import models, session
 from app.core.firebase import firebase_auth
 from app.services.value_calculator import value_score_log, cost_per_use, recommend_alpha, default_mode
 
-router = APIRouter(prefix="/api", tags=["analysis"])
+router = APIRouter(prefix="/api")
 
 def get_db():
     db = session.SessionLocal()
@@ -16,7 +16,7 @@ def get_db():
 # -------------------------
 # 월별 구독 통계
 # -------------------------
-@router.get("/statistic")
+@router.get("/statistic", tags=["analysis"])
 def get_statistics(
     month: str = Query(..., description="YYYY-MM 형식"),
     user=Depends(firebase_auth),
@@ -55,7 +55,7 @@ def get_statistics(
 # -------------------------
 # 월별 원형 그래프
 # -------------------------
-@router.get("/circleGraph")
+@router.get("/circleGraph", tags=["analysis"])
 def get_circle_graph(
     month: str = Query(..., description="YYYY-MM 형식"),
     user=Depends(firebase_auth),
@@ -84,20 +84,10 @@ def get_circle_graph(
     return {"success": True, "data": graph_data, "message": ""}
 
 
-router = APIRouter(prefix="/api", tags=["whatif"])
-
-def get_db():
-    db = session.SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
 # -------------------------
 # 월별 Whatif 데이터 조회
 # -------------------------
-@router.get("/whatif")
+@router.get("/whatif", tags=["whatif"])
 def get_whatif_data(
     month: str = Query(..., description="YYYY-MM 형식"),
     user=Depends(firebase_auth),
