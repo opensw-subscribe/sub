@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Numeric, SmallInteger, DateTime, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Numeric, SmallInteger, DateTime, UniqueConstraint, CheckConstraint
 from sqlalchemy.orm import relationship, declarative_base
 from datetime import datetime
 
@@ -31,6 +31,7 @@ class Subscription(Base):
     __tablename__ = "subscriptions"
     __table_args__ = (
         UniqueConstraint('user_id', 'app_name', 'month', name='uq_subscription_user_app_month'),
+        CheckConstraint('user_satis >= 1 AND user_satis <= 5', name='check_user_satis_range'),
     )
 
     sub_id = Column(Integer, primary_key=True, index=True)
