@@ -85,13 +85,15 @@ def get_statistics_with_rating(
             sub.user_satis
         )
         once_cost = cost_per_use(monthly_price_float, sub.service_usage_time, sub.service_usage, alpha)
-
+        value_factor = 1 + (value_score / 100)     # 1.0 ~ 2.0
+        adjusted_once_cost = once_cost / value_factor
+        
         results.append({
             "user_id": db_user.user_id,
             "app_name": sub.app_name,
             "app_category": category_name,
             "service_monthly_price": monthly_price_float,
-            "service_once_price": once_cost,
+            "service_once_price": adjusted_once_cost,
             "user_satis": sub.user_satis,
             "value_score": value_score
         })
