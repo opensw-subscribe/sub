@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Numeric, SmallInteger, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Numeric, SmallInteger, DateTime, UniqueConstraint
 from sqlalchemy.orm import relationship, declarative_base
 from datetime import datetime
 
@@ -29,6 +29,9 @@ class Category(Base):
 
 class Subscription(Base):
     __tablename__ = "subscriptions"
+    __table_args__ = (
+        UniqueConstraint('user_id', 'app_name', 'month', name='uq_subscription_user_app_month'),
+    )
 
     sub_id = Column(Integer, primary_key=True, index=True)
     user_id = Column(String, ForeignKey("users.user_id"), nullable=False)
