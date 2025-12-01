@@ -6,7 +6,6 @@ import 'package:poc_app_usage/screens/home_screen.dart';
 import 'package:poc_app_usage/screens/sub_circle_chart_screen.dart';
 import 'package:poc_app_usage/screens/sub_bar_chart_screen.dart';
 import 'package:poc_app_usage/screens/sub_whatif_screen.dart';
-import 'package:poc_app_usage/service/usage_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:poc_app_usage/config.dart';
 import '../utils/logger.dart';

@@ -1,7 +1,4 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:poc_app_usage/screens/choose_platform_screen.dart';
 import '../datas/bar_graph_data.dart'; // Statistic 모델 import 필요
 import '../service/sub_bar_graph_service.dart'; // StatisticService import 필요
@@ -89,88 +86,66 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
   }
 
   // -------------------------
-  // UI 구성 요소: 막대 그래프 Placeholder
-  // -------------------------
-  Widget _buildChartPlaceholder() {
-    return Container(
-      height: 180,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 2,
-            blurRadius: 5,
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: _statistics.map((data) => _buildBar(data)).toList(),
-      ),
-    );
-  }
-
-  // -------------------------
   // 개별 막대 위젯 (월 비용/1회 비용을 다른 막대로 표현)
   // -------------------------
   Widget _buildBar(BarGraphData data) {
-  const double maxHeight = 150.0;
+    const double maxHeight = 150.0;
 
-  final double maxMonthlyPrice = _statistics.isNotEmpty
-      ? _statistics
-            .map((e) => e.serviceMonthlyPrice)
-            .reduce((a, b) => a > b ? a : b)
-            .toDouble()
-      : 12000.0;
-  final int serviceMonthlyPrice= data.serviceMonthlyPrice;
-  final int serviceOncePrice =data.serviceOncePrice;
+    final double maxMonthlyPrice = _statistics.isNotEmpty
+        ? _statistics
+              .map((e) => e.serviceMonthlyPrice)
+              .reduce((a, b) => a > b ? a : b)
+              .toDouble()
+        : 12000.0;
+    final int serviceMonthlyPrice = data.serviceMonthlyPrice;
+    final int serviceOncePrice = data.serviceOncePrice;
 
-  final double monthlyPriceHeight =
-      maxHeight * (serviceMonthlyPrice / maxMonthlyPrice);
-  final double oncePriceHeight =
-      maxHeight * (serviceOncePrice / maxMonthlyPrice);
+    final double monthlyPriceHeight =
+        maxHeight * (serviceMonthlyPrice / maxMonthlyPrice);
+    final double oncePriceHeight =
+        maxHeight * (serviceOncePrice / maxMonthlyPrice);
 
-  return SizedBox(
-    height: maxHeight+200, // 막대 + 이름 높이 확보
-    child: Center( // 전체 영역 중앙
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end, // 막대를 아래쪽 정렬
-        children: [
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildSingleBar(
-                height: monthlyPriceHeight,
-                color: _monthlyPriceColor,
-                maxHeight: maxHeight,
-              ),
-              const SizedBox(height: 4),
-              Text('월비용:$serviceMonthlyPrice', style: const TextStyle(fontSize: 12)),
-            ],
-          ),
-          const SizedBox(width: 50),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildSingleBar(
-                height: oncePriceHeight,
-                color: _oncePriceColor,
-                maxHeight: maxHeight,
-              ),
-              const SizedBox(height: 4),
-              Text('일비용:$serviceOncePrice', style: TextStyle(fontSize: 12)),
-            ],
-          ),
-        ],
+    return SizedBox(
+      height: maxHeight + 200, // 막대 + 이름 높이 확보
+      child: Center(
+        // 전체 영역 중앙
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end, // 막대를 아래쪽 정렬
+          children: [
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildSingleBar(
+                  height: monthlyPriceHeight,
+                  color: _monthlyPriceColor,
+                  maxHeight: maxHeight,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '월비용:$serviceMonthlyPrice',
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ],
+            ),
+            const SizedBox(width: 50),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildSingleBar(
+                  height: oncePriceHeight,
+                  color: _oncePriceColor,
+                  maxHeight: maxHeight,
+                ),
+                const SizedBox(height: 4),
+                Text('일비용:$serviceOncePrice', style: TextStyle(fontSize: 12)),
+              ],
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   // -------------------------
   // 단일 막대 위젯 (재사용성 향상)
@@ -185,7 +160,11 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
       alignment: Alignment.bottomCenter,
       children: [
         // 배경 (최대 높이)
-        Container(width: width, height: maxHeight+30, color: Colors.grey[200]),
+        Container(
+          width: width,
+          height: maxHeight + 30,
+          color: Colors.grey[200],
+        ),
         // 실제 데이터 막대
         Container(
           width: width,
@@ -254,20 +233,27 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
                     rating: data.userSatis, // ⭐ 각 항목의 개인별 별점 사용!
                     onChanged: (newRating) async {
                       final oldRating = data.userSatis;
+                      final oldOncePrice = data.serviceOncePrice;
 
-                      setState(() {
-                        data.userSatis = newRating; // UI 즉시 변경
-                      });
+                      // 1) UI 즉시 반영
+                      setState(() => data.userSatis = newRating);
 
                       try {
-                        await _service.updateRating(
+                        // 2) 서버 업데이트
+                        final updatedOncePrice = await _service.updateRating(
                           userId: data.userId,
                           appName: data.appName,
                           newRating: newRating,
                         );
+
+                        setState(() {
+                          data.serviceOncePrice = updatedOncePrice;
+                           _statistics[_selectedIndex!] = data;
+                        });
                       } catch (e) {
                         setState(() {
                           data.userSatis = oldRating; // 실패하면 UI 복원
+                          data.serviceOncePrice = oldOncePrice;
                         });
                       }
                     },
@@ -329,21 +315,22 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
   }
 
   Widget _buildChartForSelected() {
-  return SizedBox(
-    height: 250, // 막대 영역 전체 높이 지정
-    child: Center(
-      child: _selectedIndex == null
-          ? Text(
-              '앱을 선택해주세요',
-              style: TextStyle(
+    return SizedBox(
+      height: 250, // 막대 영역 전체 높이 지정
+      child: Center(
+        child: _selectedIndex == null
+            ? Text(
+                '앱을 선택해주세요',
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey[600]),
-            )
-          : _buildBar(_statistics[_selectedIndex!]),
-    ),
-  );
-}
+                  color: Colors.grey[600],
+                ),
+              )
+            : _buildBar(_statistics[_selectedIndex!]),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

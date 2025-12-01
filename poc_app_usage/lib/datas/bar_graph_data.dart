@@ -4,7 +4,7 @@ class BarGraphData{
   final String appName;
   final String appCategory;
   final int serviceMonthlyPrice;
-  final int serviceOncePrice;
+  int serviceOncePrice;
   int userSatis;
 
   BarGraphData({

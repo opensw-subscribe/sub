@@ -7,7 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart'; // ★ 토큰 가져오기용
 
 class BarGraphService {
   static const String _baseUrl = Config.baseUrl;
-  static const String _endpoint = "/api/statistic";
+  static const String _endpoint = "/api/statistic/rating";
 
   Future<List<BarGraphData>> fetchBarGraph(String month) async {
   try {
@@ -57,7 +57,7 @@ class BarGraphService {
   }
 }
 
-  Future<void> updateRating({
+  Future<int> updateRating({
   required String userId,
   required String appName,
   required int newRating,
@@ -91,6 +91,10 @@ class BarGraphService {
   if (response.statusCode != 200) {
     throw Exception("서버 오류: ${response.statusCode}");
   }
+
+  // 서버 응답에서 once_price 추출
+  final Map<String, dynamic> respJson = jsonDecode(response.body);
+  return (respJson['once_price'] as num).toInt();
 }
 
 }
