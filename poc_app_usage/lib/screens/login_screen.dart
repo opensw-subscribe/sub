@@ -118,10 +118,10 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     } catch (e) {
       // 기타 에러
-      logger.d('알 수 없는 오류: $e');
-      setState(() {
-        _errorMsg = '알 수 없는 오류가 발생했습니다.';
-      });
+      logger.d(_errorMsg); // e의 실제 내용을 로그로 확인
+    setState(() {
+      _errorMsg = '알 수 없는 오류가 발생했습니다. 상세 오류: ${e.toString()}'; //오류 내용을 화면에 표시
+    });
     } finally {
       if (mounted) {
         setState(() {

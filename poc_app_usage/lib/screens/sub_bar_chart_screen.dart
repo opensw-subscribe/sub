@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:poc_app_usage/datas/bar_graph_data.dart';
 import 'package:poc_app_usage/screens/choose_platform_screen.dart';
-import '../datas/bar_graph_data.dart'; // Statistic 모델 import 필요
+import 'package:poc_app_usage/utils/logger.dart';
 import '../service/sub_bar_graph_service.dart'; // StatisticService import 필요
 
 class SubBarGraphScreen extends StatefulWidget {
@@ -15,7 +16,7 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
   final BarGraphService _service = BarGraphService();
   late Future<List<BarGraphData>> _statisticFuture;
   List<BarGraphData> _statistics = [];
-  int? _selectedIndex; // 현재 선택된 항목 인덱스, null이면 아무 것도 선택되지 않음
+  int? _selectedIndex = 0; // 현재 선택된 항목 인덱스, null이면 아무 것도 선택되지 않음
 
   // 막대 그래프와 목록에 사용될 일관된 색상 정의
   final Color _oncePriceColor = Colors.teal.shade400; // 1회 비용/만족도 막대 (민트색)
@@ -41,6 +42,24 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
     final data = await _service.fetchBarGraph(_month);
     _statistics = data;
     return data;
+  }
+
+  Future<void> _updateRating(BarGraphData data, int newRating) async {
+    final int oldRating = data.userSatis;
+    setState(() => data.userSatis = newRating);
+
+    try {
+      await _service.updateRating(
+        userId: data.userId,
+        appName: data.appName,
+        newRating: newRating,
+      );
+    } catch (e) {
+      setState(() => data.userSatis = oldRating);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("별점 수정 실패: $e")));
+    }
   }
 
   // -------------------------
@@ -247,8 +266,11 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
                         );
 
                         setState(() {
-                          data.serviceOncePrice = updatedOncePrice;
-                           _statistics[_selectedIndex!] = data;
+                          // 3) 서버 응답으로 받은 최종 데이터로 객체를 다시 생성하여 리스트에 할당
+                          _statistics[index] = _statistics[index].copyWith(
+                            serviceOncePrice: updatedOncePrice,
+                          );
+                          _statistics = List.from(_statistics);
                         });
                       } catch (e) {
                         setState(() {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // 파이어베이스 추가
 import 'package:poc_app_usage/screens/permission_screen.dart';
+import 'package:poc_app_usage/utils/logger.dart';
 import 'package:poc_app_usage/widgets/custom_text_field.dart';
 import 'package:poc_app_usage/service/auth_service.dart'; // 진짜 AuthService
 import 'package:poc_app_usage/screens/login_screen.dart';
@@ -111,6 +112,7 @@ class _SignupScreenState extends State<SignupScreen> {
       setState(() { 
         // 에러 메시지가 너무 길면 잘라서 보여주기
         _errorMsg = e.toString().replaceAll("Exception:", "").trim(); 
+        logger.d(_errorMsg);
       });
     } finally {
       if (mounted) {

@@ -41,4 +41,22 @@ class BarGraphData{
     };
   }
 
+  BarGraphData copyWith({
+    String? userId,
+    String? appName,
+    String? appCategory,
+    int? serviceMonthlyPrice,
+    int? serviceOncePrice,
+    int? userSatis,
+  }) {
+    return BarGraphData(
+      userId: userId ?? this.userId,
+      appName: appName ?? this.appName,
+      appCategory: appCategory ?? this.appCategory,
+      serviceMonthlyPrice: serviceMonthlyPrice ?? this.serviceMonthlyPrice,
+      serviceOncePrice: serviceOncePrice ?? this.serviceOncePrice,
+      userSatis: userSatis ?? this.userSatis,
+    );
+
+}
 }
