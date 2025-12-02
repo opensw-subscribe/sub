@@ -1,16 +1,10 @@
-# poc_app_usage
+1. 구독 삭제 및 동기화 로직 개선
+백엔드 API 수정 없이, 클라이언트에서 앱 이름으로 ID를 조회하여 삭제하도록 로직을 변경했습니다. 이제 구독 삭제가 정상적으로 작동하며 서버와 동기화됩니다.
 
-A new Flutter project.
+2. 구독 추가 오류 해결
+앱을 추가해도 바로 사라지던 문제를 해결했습니다. 목록 로딩 시 불필요한 강제 동기화를 제거하여, 추가한 앱이 정상적으로 유지되고 '완료하기' 버튼을 눌렀을 때 서버에 안전하게 저장되도록 수정했습니다.
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+3. UI/UX 개선 및 버그 수정
+차트 화면의 버튼 명칭을 '서비스 추가'에서 **'목록편집'**으로 변경했습니다.
+원형 차트 범례에서 긴 앱 이름으로 인한 화면 깨짐(Overflow) 현상을 해결했습니다.
+앱 실행 시 데이터 전송이 중복으로 발생하여 서버 오류(Internal Server Error)가 나던 문제를 수정했습니다.

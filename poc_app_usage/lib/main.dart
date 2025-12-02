@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart'; // 1. 필수 라이브러리 추가
 import 'package:poc_app_usage/screens/onboarding_screen.dart';
 
-void main() {
+void main() async { // 2. async 키워드 추가 (비동기 처리)
+  // 3. 플러터 엔진 초기화 (Firebase 시동 걸기 전에 필수)
+  WidgetsFlutterBinding.ensureInitialized(); 
+  
+  // 4. 파이어베이스 시동 켜기
+  await Firebase.initializeApp(); 
+
   runApp(const MyApp());
 }
 

@@ -1,62 +1,10 @@
 import 'package:flutter/material.dart';
-//import '../service/sub_whatif_service.dart';
-//import '../datas/what-if_data.dart'; // Statistic 모델
-
-// ----------------------------------------------------------------------
-// 임시 데이터 및 서비스 (실제 파일 분리 시 이 부분을 삭제하고 import 해야 합니다)
-// ----------------------------------------------------------------------
-class WhatifData {
-  final String userId;
-  final String appName;
-  final String appCategory;
-  final int serviceMonthlyPrice;
-  // 💡 isActive 필드 기본값 false
-  bool isActive;
-
-  WhatifData({
-    required this.userId,
-    required this.appName,
-    required this.appCategory,
-    required this.serviceMonthlyPrice,
-    this.isActive = true, // 기본값 true로 유지 (모든 서비스가 활성화된 상태로 시작)
-  });
-
-  factory WhatifData.mock(Map<String, dynamic> json) {
-    // mock 데이터에 'isActive' 플래그를 넣어 초기 상태를 지정할 수도 있습니다.
-    return WhatifData(
-      userId: json['user_id'] as String,
-      appName: json['app_name'] as String,
-      appCategory: json['app_category'] ?? '미분류', // appCategory가 없을 경우 처리
-      serviceMonthlyPrice: json['service_monthly_price'] as int,
-      // 임시 로직: 멜론만 초기 비활성화 상태로 설정하여 저축액을 보이게 함
-      isActive: json['app_name'] != '멜론',
-    );
-  }
-}
-
-class WhatifService {
-  Future<List<WhatifData>> fetchStatistics(String userId) async {
-    await Future.delayed(const Duration(milliseconds: 800));
-    final List<Map<String, dynamic>> mockData = [
-      {"user_id": userId, "app_name": "멜론", "service_monthly_price": 5900},
-      {"user_id": userId, "app_name": "넷플릭스", "service_monthly_price": 12000},
-      {
-        "user_id": userId,
-        "app_name": "유튜브 프리미엄",
-        "service_monthly_price": 8900,
-      },
-      {"user_id": userId, "app_name": "웨이브", "service_monthly_price": 1900},
-    ];
-
-    return mockData.map((jsonItem) => WhatifData.mock(jsonItem)).toList();
-  }
-}
-// ----------------------------------------------------------------------
+import 'package:poc_app_usage/screens/choose_platform_screen.dart';
+import '../service/sub_whatif_service.dart';
+import '../datas/what-if_data.dart'; // Statistic 모델
 
 class SubWhatIfScreen extends StatefulWidget {
-  final String userId;
-
-  const SubWhatIfScreen({super.key, required this.userId});
+  const SubWhatIfScreen(String month, {super.key});
 
   @override
   State<SubWhatIfScreen> createState() => _SubWhatIfScreenState();
@@ -67,15 +15,24 @@ class _SubWhatIfScreenState extends State<SubWhatIfScreen> {
   late Future<List<WhatifData>> _statisticFuture;
   List<WhatifData> _statistics = [];
 
+  // 요청하는 월을 YYYY-MM 형식으로 저장
+  late String _month;
+
   // 수정: initState에서 데이터를 요청하고 _statistics에 저장
   @override
   void initState() {
     super.initState();
+
+    //무조건 현재 월만을 전달하게 되어있음 수정 필요!!***
+    final now = DateTime.now();
+    _month =
+        "${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}";
+    
     _statisticFuture = _fetchAndInitializeData();
   }
 
   Future<List<WhatifData>> _fetchAndInitializeData() async {
-    _statistics = await _service.fetchStatistics(widget.userId);
+    _statistics = await _service.fetchWhatifData(_month);
     return _statistics;
   }
 
@@ -106,9 +63,15 @@ class _SubWhatIfScreenState extends State<SubWhatIfScreen> {
       actions: [
         TextButton(
           onPressed: () {
-            // '서비스 추가' 화면으로 이동하는 로직
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ChoosePlatformScreen(),
+              ),
+            );
           },
-          child: const Text('서비스 추가', style: TextStyle(color: Colors.blue)),
+
+          child: const Text('목록편집', style: TextStyle(color: Colors.blue)),
         ),
       ],
       backgroundColor: Colors.white,

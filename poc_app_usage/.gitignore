@@ -43,3 +43,12 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# 백엔드 관련 폴더 무시
+sub-develop-backend/
+sub-develop-fastapi-app/
+sub-develop-k8s/
+
+# 보안 파일 무시 (절대 올리면 안 됨!)
+service_account_key.json
+google-services.json
