@@ -4,6 +4,7 @@ from sqlalchemy import func
 from typing import List
 from app.db import models, schemas, session
 from app.core.firebase import firebase_auth
+from app.services.value_calculator import cost_per_use, default_mode, recommend_alpha, value_score_log_with_satisfaction
 
 router = APIRouter(prefix="/api/subscriptions", tags=["subscriptions"])
 
@@ -105,5 +106,30 @@ def update_subscription_rating(
     db.commit()
     db.refresh(db_sub)
 
-    # 4) dict로 반환
-    return {"success": True, "message": "Subscription rating updated"}
+    category_name = db_sub.category.category_name
+
+    # ---------- value_score 다시 계산 ----------
+    value_score = value_score_log_with_satisfaction(
+        T=db_sub.service_usage_time or 0,
+        N=db_sub.service_usage or 0,
+        mode=default_mode(category_name) or "T",
+        user_satis=payload.user_satis
+    )
+    
+    alpha = recommend_alpha(category_name)
+
+    # once_price 업데이트 (original_price 기준)
+    once_cost = cost_per_use(db_sub.service_monthly_price, db_sub.service_usage_time, db_sub.service_usage, alpha)
+    value_factor = 1 + (value_score / 100)     # 1.0 ~ 2.0
+    adjusted_once_cost = once_cost / value_factor
+    db_sub.service_once_price = adjusted_once_cost
+    # ---------------------------------------------------
+
+    db.commit()
+    db.refresh(db_sub)
+
+    return {
+        "success": True,
+        "message": "Rating + value score updated",
+        "once_price": db_sub.service_once_price
+    }

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Optional
 
 # User
@@ -27,9 +27,16 @@ class SubscriptionBase(BaseModel):
     service_usage_time: int
     service_usage: int
     weekly_usage_hours: Optional[float] = 0
-    user_satis: int
+    user_satis: int = Field(..., ge=1, le=5, description="만족도 (1~5)")
     is_active: Optional[bool] = True
     month: str  # YYYY-MM 형식 추가
+    
+    @field_validator('user_satis')
+    @classmethod
+    def validate_user_satis(cls, v: int) -> int:
+        if not (1 <= v <= 5):
+            raise ValueError('user_satis는 1~5 사이의 정수여야 합니다.')
+        return v
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -45,8 +52,15 @@ class SubscriptionCreate(BaseModel):
     service_usage_time: int
     service_usage: int
     weekly_usage_hours: Optional[float] = 0
-    user_satis: int
+    user_satis: int = Field(..., ge=1, le=5, description="만족도 (1~5)")
     is_active: Optional[bool] = True
+    
+    @field_validator('user_satis')
+    @classmethod
+    def validate_user_satis(cls, v: int) -> int:
+        if not (1 <= v <= 5):
+            raise ValueError('user_satis는 1~5 사이의 정수여야 합니다.')
+        return v
 
     # NOTE: Pydantic V2 사용 시 model_config = ConfigDict(from_attributes=True)로 대체
     class Config:
@@ -61,9 +75,16 @@ class SubscriptionUpdate(BaseModel):
     service_usage_time: Optional[int] = None
     service_usage: Optional[int] = None
     weekly_usage_hours: Optional[float] = None
-    user_satis: Optional[int] = None
+    user_satis: Optional[int] = Field(None, ge=1, le=5, description="만족도 (1~5)")
     is_active: Optional[bool] = None
     month: Optional[str] = None
+    
+    @field_validator('user_satis')
+    @classmethod
+    def validate_user_satis(cls, v: Optional[int]) -> Optional[int]:
+        if v is not None and not (1 <= v <= 5):
+            raise ValueError('user_satis는 1~5 사이의 정수여야 합니다.')
+        return v
     
     model_config = ConfigDict(from_attributes=True)
 
@@ -83,5 +104,12 @@ class AnalysisResultOut(BaseModel):
 class SubscriptionRatingUpdateRequest(BaseModel):
     user_id: str 
     app_name: str 
-    user_satis: int
+    user_satis: int = Field(..., ge=1, le=5, description="만족도 (1~5)")
     month: Optional[str] = None  # 월별로 별점 저장할 경우
+    
+    @field_validator('user_satis')
+    @classmethod
+    def validate_user_satis(cls, v: int) -> int:
+        if not (1 <= v <= 5):
+            raise ValueError('user_satis는 1~5 사이의 정수여야 합니다.')
+        return v
