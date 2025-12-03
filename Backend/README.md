@@ -3,6 +3,7 @@
 
 > ⚠️ Docker Desktop이 켜져 있어야 하며, Windows 환경에서는 Docker 드라이버 사용을 가정합니다.
 
+### 0번. cd 명령어를 이용해 Backend 파일 경로로 이동해주세요!!
 
 ### 1️⃣ minikube 시작
 ```powershell

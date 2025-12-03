@@ -1,7 +1,7 @@
 # app/services/value_calculator.py
 from math import log
 
-TMAX = 1440  # 하루 24시간 * 60분
+TMAX = 720  # 하루 24시간 * 60분
 NMAX = 50    # 하루 최대 실행 횟수
 
 def value_score_log(T: float, N: int, mode: str = "T") -> int:
