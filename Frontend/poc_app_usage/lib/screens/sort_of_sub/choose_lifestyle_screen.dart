@@ -3,15 +3,16 @@ import 'package:poc_app_usage/screens/choose_fee_screen.dart';
 import 'package:poc_app_usage/screens/write_sub_screen.dart';
 import '../../utils/logger.dart';
 
-class ChooseMusicScreen extends StatelessWidget {
-  const ChooseMusicScreen({super.key});
+class ChooseLifestyleScreen extends StatelessWidget {
+  const ChooseLifestyleScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final List<String> buttons = ['멜론', '지니뮤직', 'FLO', '벅스', '스포티파이', '애플뮤직'];
+    final List<String> buttons = ['쿠팡', '배달의 민족', '요기요'];
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
         centerTitle: true,
         title: const Text(
           '구독 서비스',
@@ -42,7 +43,7 @@ class ChooseMusicScreen extends StatelessWidget {
                     ),
                   ),
                   const TextSpan(
-                    text: ' 님의\n음악 구독 플랫폼을 알려주세요',
+                    text: ' 님의\n생활 구독 플랫폼을 알려주세요',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -56,7 +57,7 @@ class ChooseMusicScreen extends StatelessWidget {
 
             const SizedBox(height: 18),
 
-            for (int row = 0; row < 4; row++) ...[
+            for (int row = 0; row < 2; row++) ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -73,116 +74,55 @@ class ChooseMusicScreen extends StatelessWidget {
                                 logger.d('$selected 선택됨');
 
                                 switch (selected) {
-                                  case '멜론':
+                                  case '쿠팡':
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => ChooseFeeScreen(
-                                          platformName: 'Melon',
-                                          logoPath: 'assets/logo/melon_logo.png',
+                                        builder: (context) => const ChooseFeeScreen(
+                                          platformName: '쿠팡',
+                                          logoPath: 'assets/logo/coupang_logo.png',
+                                          feeList: ['쿠팡와우 (월 7,890원)'],
+                                        ),
+                                      ),
+                                    );
+                                    break;
+
+                                  case '배달의 민족':
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const ChooseFeeScreen(
+                                          platformName: '배달의 민족',
+                                          logoPath: 'assets/logo/baemin_logo.png',
                                           feeList: [
-                                            '스트리밍 클럽 (월 6,900원)',
-                                            '스트리밍 플러스 (월 11,400원)',
+                                            '배민클럽 (월 1,990원)',
+                                            '배민클럽 + 티빙 (월 5,490원)',
+                                            '배민클럽 + 유튜브 프리미엄 (월 13,990원)',
                                           ],
                                         ),
                                       ),
                                     );
                                     break;
 
-                                  case '지니뮤직':
+                                  case '요기요':
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => ChooseFeeScreen(
-                                          platformName: 'Genie',
-                                          logoPath: 'assets/logo/geniemusic_logo.png',
+                                        builder: (context) => const ChooseFeeScreen(
+                                          platformName: '요기요',
+                                          logoPath: 'assets/logo/yogiyo_logo.png',
                                           feeList: [
-                                            '스마트 음악감상 (월 7,900원)',
-                                            '음악감상 (월 8,400원)',
-                                            '데이터 세이프 음악감상 (월 10,900원)',
-                                            '초고음질 음악감상 (월 14,000원)',
+                                            '요기패스 (월 9,900원)',
+                                            '요기패스X (월 2,900원)',
                                           ],
                                         ),
                                       ),
                                     );
                                     break;
-
-                                  case 'FLO':
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => ChooseFeeScreen(
-                                          platformName: 'FLO',
-                                          logoPath: 'assets/logo/flo_logo.png',
-                                          feeList: [
-                                            '모바일 무제한 듣기 (월 6,900원)',
-                                            '무제한 듣기 (월 7,900원)',
-                                            '무제한 듣기+오프라인 재생 (월 10,900원)',                                          
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                    break;
-
-                                  case '벅스':
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => ChooseFeeScreen(
-                                          platformName: 'Bugs',
-                                          logoPath: 'assets/logo/bugs_logo.png',
-                                          feeList: [
-                                            '모바일 무제한 듣기 (월 6,900원)',
-                                            '무제한 듣기 (월 7,900원)',
-                                            '무제한 듣기 + 오프라인 재생 (월 10,900원)',
-                                            'Premium 무제한 듣기 (월 12,000원)',
-                                            'Premium 무제한 듣기 + 오프라인 재생 (월 16,000원)',                                         
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                    break;
-
-                                  case '스포티파이':
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => ChooseFeeScreen(
-                                          platformName: 'Spotify',
-                                          logoPath: 'assets/logo/spotify_logo.png',
-                                          feeList: [
-                                            '베이직 (월 8,690원)',
-                                            '개인 (월 11,900원)',
-                                            '듀오 (월 17,985원)',
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                    break;
-
-                                  case '애플뮤직':
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => ChooseFeeScreen(
-                                          platformName: 'Apple Music',
-                                          logoPath: 'assets/logo/applemusic_logo.png',
-                                          feeList: [
-                                            '개인 (월 8,900원)',
-                                            '가족 (월 13,500원)',
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                    break;
-
-                                
 
                                   default:
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('$selected 화면은 아직 준비 중입니다.'),
-                                      ),
+                                      SnackBar(content: Text('$selected 화면은 아직 준비 중입니다.')),
                                     );
                                 }
                               },
@@ -218,9 +158,7 @@ class ChooseMusicScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const WriteSubScreen(),
-                    ),
+                    MaterialPageRoute(builder: (context) => const WriteSubScreen()),
                   );
                 },
                 style: ElevatedButton.styleFrom(

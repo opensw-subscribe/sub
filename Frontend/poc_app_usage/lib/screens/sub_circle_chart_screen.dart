@@ -252,7 +252,8 @@ class _SubCircleChartScreenState extends State<SubCircleChartScreen> {
                 const SizedBox(height: 16),
 
                 Card(
-                  elevation: 1.5,
+                  color: const Color.fromARGB(255, 255, 255, 255),
+                  elevation: 6,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

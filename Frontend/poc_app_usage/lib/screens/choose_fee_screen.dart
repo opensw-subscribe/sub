@@ -192,6 +192,7 @@ class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
         centerTitle: true,
         title: const Text(
           '요금제 선택',

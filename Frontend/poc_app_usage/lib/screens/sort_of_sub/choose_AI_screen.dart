@@ -3,20 +3,16 @@ import 'package:poc_app_usage/screens/choose_fee_screen.dart';
 import 'package:poc_app_usage/screens/write_sub_screen.dart';
 import '../../utils/logger.dart';
 
-class ChooseContentsScreen extends StatelessWidget {
-  const ChooseContentsScreen({super.key});
+class ChooseAIScreen extends StatelessWidget {
+  const ChooseAIScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final List<String> buttons = [
-      '유튜브 프리미엄',
-      'Postype',
-      '밀리의 서재',
-      '리디',
-    ];
+    final List<String> buttons = ['ChatGPT', 'Google Gemini', 'Notion', 'Canva'];
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
         centerTitle: true,
         title: const Text(
           '구독 서비스',
@@ -47,7 +43,7 @@ class ChooseContentsScreen extends StatelessWidget {
                     ),
                   ),
                   const TextSpan(
-                    text: ' 님의\n콘텐츠 구독 플랫폼을 알려주세요',
+                    text: ' 님의\nAI 구독 플랫폼을 알려주세요',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -61,7 +57,7 @@ class ChooseContentsScreen extends StatelessWidget {
 
             const SizedBox(height: 18),
 
-            for (int row = 0; row < 3; row++) ...[
+            for (int row = 0; row < 2; row++) ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -78,64 +74,65 @@ class ChooseContentsScreen extends StatelessWidget {
                                 logger.d('$selected 선택됨');
 
                                 switch (selected) {
-                                  case '유튜브 프리미엄':
+                                  case 'ChatGPT':
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => ChooseFeeScreen(
-                                          platformName: 'YouTube Premium',
-                                          logoPath: 'assets/logo/youtube_logo.png',
+                                        builder: (context) => const ChooseFeeScreen(
+                                          platformName: 'ChatGPT',
+                                          logoPath: 'assets/logo/chatgpt_logo.png',
                                           feeList: [
-                                            '유튜브 프리미엄 (월 14,900원)',
+                                            'Plus (월 \$20)',
+                                            'Pro (월 \$200)',
+                                            'Business (월 \$30)',
                                           ],
                                         ),
                                       ),
                                     );
                                     break;
 
-                                  case 'Postype':
+                                  case 'Google Gemini':
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => ChooseFeeScreen(
-                                          platformName: 'Postype',
-                                          logoPath: 'assets/logo/postype_logo.png',
+                                        builder: (context) => const ChooseFeeScreen(
+                                          platformName: 'Google Gemini',
+                                          logoPath: 'assets/logo/gemini_logo.png',
                                           feeList: [
-                                            '라이트 (월 2,900원)',
-                                            '플러스 (월 5,400원)',
+                                            'AI Pro (월 29,000원)',
+                                            'AI Ultra (월 360,000원)',
                                           ],
                                         ),
                                       ),
                                     );
                                     break;
 
-                                  case '밀리의 서재':
+                                  case 'Notion':
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => ChooseFeeScreen(
-                                          platformName: 'Millie',
-                                          logoPath: 'assets/logo/millie_logo.png',
+                                        builder: (context) => const ChooseFeeScreen(
+                                          platformName: 'Notion',
+                                          logoPath: 'assets/logo/notion_logo.png',
                                           feeList: [
-                                            'Web 구독 (월 11,900원)',
-                                            'Google Play 구독 (월 12,900원)',
-                                            'Galaxy Store 구독 (월 12,900원)',
-                                            '원스토어 구독 (월 11,900원)',
+                                            'Plus (월 16,800원)',
+                                            'Business (월 36,000원)',
                                           ],
                                         ),
                                       ),
                                     );
                                     break;
 
-                                  case '리디':
+                                  case 'Canva':
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => ChooseFeeScreen(
-                                          platformName: 'RIDI',
-                                          logoPath: 'assets/logo/ridi_logo.png',
+                                        builder: (context) => const ChooseFeeScreen(
+                                          platformName: 'Canva',
+                                          logoPath: 'assets/logo/canva_logo.png',
                                           feeList: [
-                                            '리디셀렉트 (월 4,900원)',
+                                            'Pro (월 9,900원)',
+                                            'Business (월 12,900원)',
                                           ],
                                         ),
                                       ),
@@ -144,9 +141,7 @@ class ChooseContentsScreen extends StatelessWidget {
 
                                   default:
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('$selected 화면은 아직 준비 중입니다.'),
-                                      ),
+                                      SnackBar(content: Text('$selected 화면은 아직 준비 중입니다.')),
                                     );
                                 }
                               },

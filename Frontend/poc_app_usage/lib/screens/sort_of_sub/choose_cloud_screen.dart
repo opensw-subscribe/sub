@@ -11,6 +11,7 @@ class ChooseCloudScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
         centerTitle: true,
         title: const Text(
           '구독 서비스',

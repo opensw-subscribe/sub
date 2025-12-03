@@ -44,24 +44,6 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
     return data;
   }
 
-  Future<void> _updateRating(BarGraphData data, int newRating) async {
-    final int oldRating = data.userSatis;
-    setState(() => data.userSatis = newRating);
-
-    try {
-      await _service.updateRating(
-        userId: data.userId,
-        appName: data.appName,
-        newRating: newRating,
-      );
-    } catch (e) {
-      setState(() => data.userSatis = oldRating);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("별점 수정 실패: $e")));
-    }
-  }
-
   // -------------------------
   // UI 구성 요소: 별점 위젯
   // -------------------------
@@ -108,7 +90,6 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
   // 개별 막대 위젯 (월 비용/1회 비용을 다른 막대로 표현)
   // -------------------------
   Widget _buildBar(BarGraphData data) {
-    const double maxHeight = 150.0;
 
     final double maxMonthlyPrice = _statistics.isNotEmpty
         ? _statistics
@@ -119,8 +100,9 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
     final int serviceMonthlyPrice = data.serviceMonthlyPrice;
     final int serviceOncePrice = data.serviceOncePrice;
 
-    final double monthlyPriceHeight =
-        maxHeight * (serviceMonthlyPrice / maxMonthlyPrice);
+    double maxHeight = maxMonthlyPrice / 80;
+
+    final double monthlyPriceHeight = serviceMonthlyPrice / 80;
     final double oncePriceHeight =
         maxHeight * (serviceOncePrice / maxMonthlyPrice);
 
@@ -132,6 +114,7 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.end, // 막대를 아래쪽 정렬
           children: [
+            Spacer(flex: 2),
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -140,14 +123,17 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
                   color: _monthlyPriceColor,
                   maxHeight: maxHeight,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '월비용:$serviceMonthlyPrice',
-                  style: const TextStyle(fontSize: 12),
-                ),
+                const SizedBox(height: 20,),
+                const Text(
+                      '월비용',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
               ],
             ),
-            const SizedBox(width: 50),
+            Spacer(flex: 1),
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -156,10 +142,18 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
                   color: _oncePriceColor,
                   maxHeight: maxHeight,
                 ),
-                const SizedBox(height: 4),
-                Text('일비용:$serviceOncePrice', style: TextStyle(fontSize: 12)),
+                const SizedBox(height: 20,),
+                const Text(
+                      '1회비용',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
               ],
             ),
+            Spacer(flex: 2),
           ],
         ),
       ),
@@ -173,17 +167,13 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
     required double height,
     required Color color,
     required double maxHeight,
-    double width = 15.0,
+    double width = 20.0,
   }) {
     return Stack(
       alignment: Alignment.bottomCenter,
       children: [
         // 배경 (최대 높이)
-        Container(
-          width: width,
-          height: maxHeight + 30,
-          color: Colors.grey[200],
-        ),
+        Container(width: width, height: maxHeight, color: Colors.grey[200]),
         // 실제 데이터 막대
         Container(
           width: width,
@@ -202,9 +192,9 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
   // -------------------------
   Widget _buildListItem(BarGraphData data) {
     final int index = _statistics.indexOf(data);
-    //  목록 점 색상을 월 비용 막대의 색상으로 통일
+    //  목록 점 색상
     final Color listColor = _listColors[index % _listColors.length];
-
+    final bool isSelected = _selectedIndex == index;
     final String formattedPrice = data.serviceMonthlyPrice
         .toString()
         .replaceAllMapped(
@@ -225,22 +215,38 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // 1. 색상 점 (월 비용 색상으로 통일)
-            Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                color: listColor,
-                shape: BoxShape.circle,
+            Expanded(
+              child: Container(
+                // 선택 여부에 따라 배경색 설정: 선택되면 회색(Colors.grey[300]), 아니면 투명
+                color: isSelected ? Colors.grey[300] : Colors.transparent,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 4.0,
+                ), // 옵션: 점과 텍스트 주변에 약간의 패딩 추가 (깔끔한 시각적 분리)
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // 1. 색상 점
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: listColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // 2. 앱 이름 (Expanded의 자식 Row에서는 Expanded를 사용하여 공간 채우기)
+                    Expanded(
+                      child: Text(
+                        data.appName,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(width: 8),
-
-            // 2. 앱 이름 (Expanded로 나머지 공간 모두 확보)
-            Expanded(
-              child: Text(data.appName, style: const TextStyle(fontSize: 16)),
-            ),
-
             // 3. 별점 표시 (정렬을 위해 고정된 SizedBox 안에 넣습니다)
             //  별점 너비를 고정하여 앱 이름 길이에 상관없이 정렬되도록 함 (대략적인 너비 120.0 사용)
             SizedBox(
@@ -249,13 +255,17 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
                 mainAxisAlignment: MainAxisAlignment.end, // 오른쪽 정렬
                 children: [
                   _buildStarRating(
-                    rating: data.userSatis, // ⭐ 각 항목의 개인별 별점 사용!
+                    rating: data.userSatis,
                     onChanged: (newRating) async {
                       final oldRating = data.userSatis;
                       final oldOncePrice = data.serviceOncePrice;
 
                       // 1) UI 즉시 반영
-                      setState(() => data.userSatis = newRating);
+                      setState(() {
+                        // 수정 시 자동으로 해당 그래프를 표시
+                        _selectedIndex = index;
+                        data.userSatis = newRating;
+                      });
 
                       try {
                         // 2) 서버 업데이트
@@ -380,6 +390,7 @@ class _SubBarGraphScreenState extends State<SubBarGraphScreen> {
               children: [
                 // 1. 차트
                 Center(child: _buildChartForSelected()),
+                
                 const SizedBox(height: 45),
 
                 // 2. 제목

@@ -43,7 +43,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
         final data = jsonDecode(response.body);
         if (mounted) {
           setState(() {
-            userName = data['userName'];
+            userName = data['user_name'];
           });
         }
       }

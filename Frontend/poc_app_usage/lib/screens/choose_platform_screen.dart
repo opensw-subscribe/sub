@@ -14,7 +14,7 @@ import '../utils/logger.dart';
 
 class ChoosePlatformScreen extends StatefulWidget {
   const ChoosePlatformScreen({super.key});
-  
+
   @override
   State<ChoosePlatformScreen> createState() => _ChoosePlatformScreenState();
 }
@@ -66,30 +66,33 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
     try {
       final subInfoService = SubInfoService();
       // 백엔드에서 구독 목록 가져오기
-      final List<SubInfoData> backendData = await subInfoService.fetchSubInfoData();
-      
+      final List<SubInfoData> backendData = await subInfoService
+          .fetchSubInfoData();
+
       final prefs = await SharedPreferences.getInstance();
-      
+
       // 1. 서버 데이터를 로컬에 저장/업데이트
       final Set<String> serverAppNames = {};
       for (var item in backendData) {
         serverAppNames.add(item.appName);
-        await prefs.setString('${item.appName}_fee', item.serviceMonthlyPrice.toString());
+        await prefs.setString(
+          '${item.appName}_fee',
+          item.serviceMonthlyPrice.toString(),
+        );
         await prefs.setString('${item.appName}_category', item.appCategory);
       }
-      
+
       // 2. 서버에 없는 로컬 데이터 삭제 (완전 동기화)
       final allKeys = prefs.getKeys().where((k) => k.endsWith('_fee')).toList();
       for (var key in allKeys) {
         String appName = key.replaceAll('_fee', '');
         if (!serverAppNames.contains(appName)) {
-           await prefs.remove(key);
-           await prefs.remove('${appName}_category');
-           logger.d('🗑️ 로컬 삭제 (서버 동기화): $appName');
+          await prefs.remove(key);
+          await prefs.remove('${appName}_category');
+          logger.d('🗑️ 로컬 삭제 (서버 동기화): $appName');
         }
       }
       logger.d('✅ 백엔드 동기화 완료 (${backendData.length}개)');
-      
     } catch (e) {
       logger.w('⚠️ 백엔드 동기화 실패: $e');
     }
@@ -173,6 +176,7 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
         centerTitle: true,
         title: const Text(
           '구독 서비스',
@@ -330,16 +334,16 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
 
                   const SizedBox(height: 12),
                   ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const WriteSubScreen(),
-                          ),
-                        ).then((_) {
-                          if (mounted) _loadSelectedServices();
-                        });
-                      },
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const WriteSubScreen(),
+                        ),
+                      ).then((_) {
+                        if (mounted) _loadSelectedServices();
+                      });
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.black,
@@ -388,11 +392,15 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
                     ),
                   ),
                   Expanded(
-                    child: Scrollbar( // 스크롤바 추가
+                    child: Scrollbar(
+                      // 스크롤바 추가
                       thumbVisibility: true,
                       child: ListView.builder(
                         scrollDirection: Axis.vertical, // 세로 스크롤
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         itemCount: _selectedServices.length,
                         itemBuilder: (context, index) {
                           final appName = _selectedServices.elementAt(index);
