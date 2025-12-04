@@ -59,7 +59,7 @@ jobs:
           kubectl get pods 
 
           echo "--- 5-4. 배포 완료 대기 ---"
-          kubectl wait --for=condition=Available deployment/backend-deployment --timeout=500s
+          kubectl wait --for=condition=Available deployment/backend-deployment --timeout=600s
 
           echo "--- 5-5. 디버깅 정보 확인 (타임아웃 발생 시 실행) ---"
           kubectl get pods 
