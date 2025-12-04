@@ -2,8 +2,8 @@ name: Flutter Daily APK Build
 
 on:
   schedule:
-    - cron: '0 0 * * *'   # 매일 00:00 UTC = 한국 09:00
-  workflow_dispatch:       # 수동 실행도 가능
+    - cron: '0 0 * * *'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -12,6 +12,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Restore google-services.json
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > Frontend/poc_app_usage/android/app/google-services.json
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
