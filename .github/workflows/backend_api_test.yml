@@ -54,12 +54,29 @@ jobs:
           kubectl wait --for=condition=Available deployment/backend-deployment --timeout=300s
           echo "✅ Backend Deployment 준비 완료"
 
-          echo "--- 5. Pod Running 상태 대기 (최대 5분) ---"
-          for i in {1..60}; do
+          echo "--- 5. Pod 상태 확인 (최대 3분) ---"
+          for i in {1..36}; do
             TOTAL_PODS=$(kubectl get pods --no-headers 2>/dev/null | wc -l)
             RUNNING_PODS=$(kubectl get pods --no-headers 2>/dev/null | grep "Running" | wc -l)
             
-            echo "[$i/60] Pod 상태: $RUNNING_PODS/$TOTAL_PODS Running"
+            echo "[$i/36] Pod 상태: $RUNNING_PODS/$TOTAL_PODS Running"
+            
+            # Backend Pod 상태 상세 확인
+            BACKEND_STATUS=$(kubectl get pods -l io.kompose.service=backend --no-headers 2>/dev/null | awk '{print $3}')
+            echo "  Backend 상태: $BACKEND_STATUS"
+            
+            # CrashLoopBackOff 감지
+            if echo "$BACKEND_STATUS" | grep -q "CrashLoopBackOff"; then
+              echo ""
+              echo "❌ Backend가 CrashLoopBackOff 상태입니다!"
+              echo ""
+              echo "=== Backend 로그 (크래시 원인) ==="
+              kubectl logs deployment/backend-deployment --tail=100
+              echo ""
+              echo "=== 이전 컨테이너 로그 ==="
+              kubectl logs deployment/backend-deployment --previous --tail=50 || echo "이전 로그 없음"
+              exit 1
+            fi
             
             if [ "$RUNNING_PODS" -eq "$TOTAL_PODS" ] && [ "$TOTAL_PODS" -gt 0 ]; then
               echo "✅ 모든 Pod Running!"
@@ -67,9 +84,13 @@ jobs:
               break
             fi
             
-            if [ $((i % 10)) -eq 0 ]; then
+            if [ $((i % 6)) -eq 0 ]; then
               echo "현재 Pod 상태:"
               kubectl get pods
+              echo ""
+              echo "=== Backend 로그 (최근 20줄) ==="
+              kubectl logs deployment/backend-deployment --tail=20 || echo "로그 없음"
+              echo ""
             fi
             
             sleep 5
@@ -89,18 +110,43 @@ jobs:
           echo "🔍 백엔드 헬스체크 시작..."
           echo "📡 대상 URL: $BACKEND_URL"
           
-          MAX_ATTEMPTS=30
+          # 먼저 Backend 로그 확인
+          echo ""
+          echo "=== 헬스체크 전 Backend 로그 확인 ==="
+          kubectl logs deployment/backend-deployment --tail=50
+          echo ""
+          
+          MAX_ATTEMPTS=20
           ATTEMPT=0
-          SLEEP_TIME=10
+          SLEEP_TIME=15
           
           while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
             ATTEMPT=$((ATTEMPT + 1))
             echo "[$ATTEMPT/$MAX_ATTEMPTS] 헬스체크 시도 중..."
             
+            # Pod 상태 확인
+            POD_STATUS=$(kubectl get pods -l io.kompose.service=backend --no-headers | awk '{print $3}')
+            echo "  현재 Backend Pod 상태: $POD_STATUS"
+            
+            # CrashLoopBackOff면 즉시 중단
+            if echo "$POD_STATUS" | grep -q "CrashLoopBackOff"; then
+              echo "❌ Backend가 크래시 상태입니다!"
+              kubectl logs deployment/backend-deployment --tail=100
+              exit 1
+            fi
+            
+            # 헬스체크 시도
             if curl -f -s --max-time 5 "$BACKEND_URL/health" > /dev/null 2>&1; then
               echo "✅ 백엔드 준비 완료!"
-              echo "🎉 헬스체크 성공!"
               exit 0
+            fi
+            
+            # 3회마다 로그 출력
+            if [ $((ATTEMPT % 3)) -eq 0 ]; then
+              echo ""
+              echo "=== Backend 로그 (최근 30줄) ==="
+              kubectl logs deployment/backend-deployment --tail=30
+              echo ""
             fi
             
             if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
@@ -109,14 +155,18 @@ jobs:
             fi
           done
           
+          echo ""
           echo "❌ 백엔드 헬스체크 실패 (${MAX_ATTEMPTS}회 시도)"
           echo ""
-          echo "=== 디버깅 정보 ==="
+          echo "=== 최종 디버깅 정보 ==="
           echo "--- Pod 상태 ---"
           kubectl get pods
           echo ""
-          echo "--- Backend 로그 ---"
-          kubectl logs deployment/backend-deployment --tail=100
+          echo "--- Backend 로그 (전체) ==="
+          kubectl logs deployment/backend-deployment --tail=200
+          echo ""
+          echo "--- 이전 컨테이너 로그 ---"
+          kubectl logs deployment/backend-deployment --previous --tail=100 || echo "이전 로그 없음"
           exit 1
 
       - name: Set up Python
@@ -145,11 +195,17 @@ jobs:
           echo "--- Pod 상태 ---"
           kubectl get pods
           echo ""
-          echo "--- Backend 로그 (최근 200줄) ---"
+          echo "--- Backend 현재 로그 ---"
           kubectl logs deployment/backend-deployment --tail=200
           echo ""
-          echo "--- DB 로그 (최근 100줄) ---"
+          echo "--- Backend 이전 로그 ---"
+          kubectl logs deployment/backend-deployment --previous --tail=100 || echo "이전 로그 없음"
+          echo ""
+          echo "--- DB 로그 ---"
           kubectl logs deployment/db --tail=100
           echo ""
-          echo "--- Redis 로그 (최근 50줄) ---"
+          echo "--- Redis 로그 ---"
           kubectl logs deployment/redis --tail=50
+          echo ""
+          echo "--- Events ---"
+          kubectl get events --sort-by='.lastTimestamp' | tail -20
