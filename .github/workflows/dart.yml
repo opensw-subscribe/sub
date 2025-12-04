@@ -14,12 +14,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Install the Dart SDK (use @v1 to follow the maintained release)
       - uses: dart-lang/setup-dart@v1
         with:
           sdk: stable
 
-      # Cache pub packages to speed up builds
       - name: Cache pub packages
         uses: actions/cache@v4
         with:
@@ -29,14 +27,13 @@ jobs:
             ${{ runner.os }}-pub-
 
       - name: Install dependencies
+        working-directory: Frontend/poc_app_usage/
         run: dart pub get
 
-      # Optional: verify formatting (uncomment to enforce)
-      # - name: Verify formatting
-      #   run: dart format --output=none --set-exit-if-changed .
-
       - name: Analyze project source
+        working-directory: Frontend/poc_app_usage/
         run: dart analyze
 
       - name: Run tests
+        working-directory: Frontend/poc_app_usage/
         run: dart test
