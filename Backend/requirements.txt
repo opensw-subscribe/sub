@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+SQLAlchemy
+psycopg2-binary
+firebase-admin
+python-dotenv
+pydantic
+httpx
+alembic
+requests
+pytest
+pytest-asyncio
+redis
+tenacity

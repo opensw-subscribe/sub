@@ -1,0 +1,64 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    networks:
+      - backend
+    # 추가: Health Check 정의
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"] # DB가 연결 준비가 되었는지 확인
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s # 처음 10초 동안은 실패해도 재시도 횟수에 포함시키지 않음
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - backend
+
+  backend:
+    build: .
+    image: fastapi-app:local  # kompose에서 이미지 이름을 읽을 수 있게 이름을 명시적으로 지정 
+    container_name: fastapi-app
+    depends_on:
+      db:
+        condition: service_healthy # DB가 Health Check를 통과할 때까지 기다림
+      redis:
+        condition: service_started
+    ports:
+      - "8000:8000"
+    environment:
+      - FIREBASE_KEY_PATH=/app/service_account_key.json
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0  
+    volumes:
+      - ./service_account_key.json:/app/service_account_key.json
+    networks:
+      - backend
+
+volumes:
+  postgres_data:
+
+networks:
+  backend:

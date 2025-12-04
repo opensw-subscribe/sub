@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.37.0 (HEAD)
+  labels:
+    io.kompose.service: backend
+  name: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: backend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.37.0 (HEAD)
+      labels:
+        io.kompose.service: backend
+    spec:
+      containers:
+        - env:
+            # 🔥 추가된 부분: 완벽한 DB 연결 URL을 구성하여 애플리케이션에 전달
+            - name: DATABASE_URL 
+              value: postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@db:5432/$(POSTGRES_DB)
+            # 기존 환경 변수들 (FastAPI 코드가 이들을 사용하지 않더라도 안전을 위해 유지)
+            - name: FIREBASE_KEY_PATH
+              value: /app/service_account_key.json
+            - name: POSTGRES_DB
+              value: opensw_db
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: REDIS_DB
+              value: "0"
+            - name: REDIS_HOST
+              value: redis
+            - name: REDIS_PORT
+              value: "6379"
+          image: fastapi-app:local
+          name: fastapi-app
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          volumeMounts:
+            - name: firebase-key-volume
+              mountPath: /app/service_account_key.json
+              subPath: service_account_key.json
+              readOnly: true
+      restartPolicy: Always
+      volumes:
+        - name: firebase-key-volume
+          secret:
+            secretName: firebase-key-secret

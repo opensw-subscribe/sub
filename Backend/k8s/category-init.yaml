@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: category-init
+data:
+  01-category-seed.sql: | 
+    INSERT INTO categories (category_name) VALUES 
+    ('OTT'),
+    ('Music'),
+    ('Contents'),
+    ('AI'),
+    ('LifeStyle')
+    ON CONFLICT (category_name) DO NOTHING;
+
+# 카테고리 초기 데이터를 삽입하는 SQL 스크립트입니다.
