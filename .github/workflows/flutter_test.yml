@@ -1,4 +1,5 @@
-name: Flutter Quality Check
+name: Flutter CI
+
 on: 
   push:
     branches: [ "main", "develop" ]
@@ -6,7 +7,7 @@ on:
     branches: [ "main", "develop" ]
 
 jobs:
-  analyze:
+  quality-check:
     runs-on: ubuntu-latest
   
     defaults:
@@ -33,10 +34,38 @@ jobs:
             ${{ runner.os }}-pub-
           
       - name: Get Dependencies
-        run: flutter pub get 
+        run: flutter pub get
+      
+      # 1. 코드 포맷 체크
+      - name: Check Code Formatting
+        run: dart format --set-exit-if-changed lib/ test/
         
+      # 2. 정적 분석
       - name: Run Flutter Analyze
-        run: flutter analyze
+        run: flutter analyze --fatal-infos
 
-      - name: Run Tests
-        run: flutter test
+      # 3. Widget 테스트
+      - name: Run Widget Tests
+        run: flutter test test/widgets/
+      
+      # 4. 테스트 커버리지
+      - name: Generate Coverage
+        run: flutter test --coverage test/widgets/
+        
+      - name: Upload Coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./Frontend/poc_app_usage/coverage/lcov.info
+          fail_ci_if_error: false
+      
+      # 5. 빌드 체크
+      - name: Build APK (Debug)
+        run: flutter build apk --debug
+        
+      - name: Build Web
+        run: flutter build web --release
+        
+      # 6. 의존성 체크
+      - name: Check Outdated Packages
+        run: flutter pub outdated
+        continue-on-error: true
