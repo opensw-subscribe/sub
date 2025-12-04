@@ -58,9 +58,15 @@ jobs:
           # Pod 상태 확인: Pending, Running, CrashLoopBackOff 등 확인
           kubectl get pods 
 
-          echo "--- 5-4. 배포 완료 대기 ---"
-          kubectl wait --for=condition=Available deployment/backend-deployment --timeout=600s
+          echo "--- 5-4-1. DB (Postgres) 배포 완료 대기 (가장 오래 걸림) ---"
+          kubectl wait --for=condition=Available deployment/db --timeout=600s 
 
+          echo "--- 5-4-2. Redis 배포 완료 대기 ---"
+          kubectl wait --for=condition=Available deployment/redis --timeout=300s 
+
+          echo "--- 5-4-3. 백엔드 배포 완료 대기 (의존성 준비 완료 후) ---"
+          kubectl wait --for=condition=Available deployment/backend-deployment --timeout=300s
+          
           echo "--- 5-5. 디버깅 정보 확인 (타임아웃 발생 시 실행) ---"
           kubectl get pods 
           
