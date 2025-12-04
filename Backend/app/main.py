@@ -1,4 +1,5 @@
 from fastapi import Depends, FastAPI, Request
+from Backend.app.routers import health
 from app.core.firebase import firebase_auth
 from app.db import models, session
 from app.routers import users, subscriptions, analysis
@@ -110,6 +111,7 @@ def redis_test():
 app.include_router(users.router)
 app.include_router(subscriptions.router)
 app.include_router(analysis.router)
+app.include_router(health.router)
 
 @app.get("/")
 def root():
