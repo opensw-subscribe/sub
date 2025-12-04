@@ -59,15 +59,12 @@ jobs:
           kubectl get pods 
 
           echo "--- 5-4. 배포 완료 대기 ---"
-          # wait 명령이 타임아웃되어도 스크립트가 중단되지 않도록 || true 추가
           kubectl wait --for=condition=Available deployment/backend-deployment --timeout=500s
 
           echo "--- 5-5. 디버깅 정보 확인 (타임아웃 발생 시 실행) ---"
-          # Pod 상태 확인: Pending, Running, CrashLoopBackOff 등 확인
           kubectl get pods 
           
           echo "--- 5-5. 백엔드 서비스 URL 획득 및 환경 변수 설정 ---"
-          # Minikube Service 이름이 'backend-service'라고 가정합니다.
           BACKEND_URL=$(minikube service backend-service --url)
           
           # 다음 스텝에서 사용할 수 있도록 환경 변수 설정
@@ -89,4 +86,4 @@ jobs:
       # 8. 테스트 실행 (3단계)
       - name: Run Backend Integration Test
         # 이전 스텝에서 설정된 $BACKEND_URL 환경 변수를 Pytest가 사용합니다.
-        run: pytest test_api.py # 또는 pytest test/ (테스트 파일 위치에 따라)
+        run: pytest test/test_api.py # 또는 pytest test/ (테스트 파일 위치에 따라)
