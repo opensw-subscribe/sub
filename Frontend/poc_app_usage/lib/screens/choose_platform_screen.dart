@@ -288,7 +288,7 @@ class _ChoosePlatformScreenState extends State<ChoosePlatformScreen> {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
-                                                const ChooseAIScreen(),
+                                               ChooseAIScreen(),
                                           ),
                                         ).then((_) {
                                           if (mounted) _loadSelectedServices();
