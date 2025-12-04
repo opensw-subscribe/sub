@@ -66,9 +66,10 @@ jobs:
 
           echo "--- 5-4-3. 백엔드 배포 완료 대기 (의존성 준비 완료 후) ---"
           kubectl wait --for=condition=Available deployment/backend-deployment --timeout=300s
-          
+
           echo "--- 5-5. 디버깅 정보 확인 (타임아웃 발생 시 실행) ---"
           kubectl get pods 
+          kubectl logs deployment/backend-deployment
           
           echo "--- 5-5. 백엔드 서비스 URL 획득 및 환경 변수 설정 ---"
           BACKEND_URL=$(minikube service backend-service --url)
@@ -76,6 +77,10 @@ jobs:
           # 다음 스텝에서 사용할 수 있도록 환경 변수 설정
           echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
           echo "획득된 백엔드 URL: $BACKEND_URL"
+
+      # 5-2. Deployment 이후에 새로운 스텝 추가
+      - name: ⏳ Wait for Application Readiness
+        run: sleep 30
 
       # 6. Python 및 Pytest 설정
       - name: Set up Python
