@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:poc_app_usage/datas/bar_graph_data.dart';
 import 'package:poc_app_usage/screens/choose_platform_screen.dart';
-import 'package:poc_app_usage/utils/logger.dart';
 import '../service/sub_bar_graph_service.dart'; // StatisticService import 필요
 
 class SubBarGraphScreen extends StatefulWidget {

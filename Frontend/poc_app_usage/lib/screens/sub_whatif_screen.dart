@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:poc_app_usage/screens/choose_platform_screen.dart';
 import '../service/sub_whatif_service.dart';
-import '../datas/what-if_data.dart'; // Statistic 모델
+import '../datas/whatif_data.dart'; // Statistic 모델
 
 class SubWhatIfScreen extends StatefulWidget {
   const SubWhatIfScreen(String month, {super.key});
@@ -132,7 +132,7 @@ class _SubWhatIfScreenState extends State<SubWhatIfScreen> {
                 data.isActive = value; // 상태 변경
               });
             },
-            activeColor: Colors.teal,
+            activeThumbColor: Colors.teal,
             inactiveThumbColor: Colors.grey.shade400,
             inactiveTrackColor: Colors.grey.shade200,
           ),
@@ -251,7 +251,7 @@ class _SubWhatIfScreenState extends State<SubWhatIfScreen> {
                 ),
                 const SizedBox(height: 8),
 
-                ..._statistics.map((data) => _buildListItem(data)).toList(),
+                ..._statistics.map((data) => _buildListItem(data)),
 
                 // 추가적인 여백
                 const SizedBox(height: 50),

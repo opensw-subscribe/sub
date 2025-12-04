@@ -3,7 +3,7 @@ import 'package:poc_app_usage/config.dart';
 import 'dart:convert';
 import 'package:poc_app_usage/utils/logger.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // ★ 토큰 가져오기용 추가
-import '../datas/what-if_data.dart';
+import '../datas/whatif_data.dart';
 
 class WhatifService {
   static const String _baseUrl = Config.baseUrl;

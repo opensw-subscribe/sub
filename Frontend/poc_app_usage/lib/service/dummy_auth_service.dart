@@ -7,20 +7,20 @@ class DummyAuthService {
 
   // 회원가입
   Future<Map<String, dynamic>> signup({
-    required String user_id,
+    required String userId,
     required String username,
     required String password,
   }) async {
     await Future.delayed(const Duration(seconds: 1)); // API 지연 흉내
 
-    if (_users.containsKey(user_id)) {
+    if (_users.containsKey(userId)) {
       return {
         'success': false,
         'message': '이미 존재하는 아이디입니다.',
       };
     }
 
-    _users[user_id] = {
+    _users[userId] = {
       'username': username,
       'password': password,
     };
@@ -29,7 +29,7 @@ class DummyAuthService {
       'success': true,
       'message': '회원가입 성공',
       'data': {
-        'user_id': user_id,
+        'user_id': userId,
         'user_name': username,
         'token': 'dummy_jwt_token',
       },
@@ -38,19 +38,19 @@ class DummyAuthService {
 
   // 로그인
   Future<Map<String, dynamic>> login({
-    required String user_id,
+    required String userId,
     required String password,
   }) async {
     await Future.delayed(const Duration(seconds: 1));
 
-    if (!_users.containsKey(user_id)) {
+    if (!_users.containsKey(userId)) {
       return {
         'success': false,
         'message': '아이디가 존재하지 않습니다.',
       };
     }
 
-    if (_users[user_id]!['password'] != password) {
+    if (_users[userId]!['password'] != password) {
       return {
         'success': false,
         'message': '비밀번호가 일치하지 않습니다.',
@@ -61,8 +61,8 @@ class DummyAuthService {
       'success': true,
       'message': '로그인 성공',
       'data': {
-        'user_id': user_id,
-        'user_name': _users[user_id]!['username'],
+        'user_id': userId,
+        'user_name': _users[userId]!['username'],
         'token': 'dummy_jwt_token',
       },
     };

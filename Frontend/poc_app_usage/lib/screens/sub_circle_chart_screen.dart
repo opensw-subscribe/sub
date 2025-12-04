@@ -139,6 +139,7 @@ class _SubCircleChartScreenState extends State<SubCircleChartScreen> {
                   child: Text(s.appName, style: const TextStyle(fontSize: 16)),
                 ),
                 Text(
+                  // ignore: unnecessary_string_interpolations
                   "$formattedPrice",
                   style: const TextStyle(
                     fontSize: 16,
@@ -148,7 +149,7 @@ class _SubCircleChartScreenState extends State<SubCircleChartScreen> {
               ],
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }

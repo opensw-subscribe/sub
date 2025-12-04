@@ -30,10 +30,16 @@ jobs:
         run: |
           # 4-1. Docker 이미지를 Minikube 환경으로 가져옴
           minikube image load backend-app:local
+
+          # Deploy to Minikube 스텝에 추가
+          # 4번 Firebase Secret 생성 (테스트용 더미 파일 또는 CI/CD 변수 사용)
+          kubectl create secret generic firebase-key-secret --from-file=service_account_key.json
+
+          # 5번 Postgres Secret 생성
+          kubectl create secret generic postgres-secret --from-literal=POSTGRES_USER=postgres --from-literal=POSTGRES_PASSWORD=1234
           
           # 4-2. Kubernetes Deployment 및 Service 배포 (Service는 NodePort 타입이어야 함)
-          kubectl apply -f kubernetes/deployment.yaml
-          kubectl apply -f kubernetes/service.yaml
+          kubectl apply -f k8s/
           
           # 4-3. 배포가 완료될 때까지 기다림
           kubectl wait --for=condition=Available deployment/backend-deployment --timeout=300s

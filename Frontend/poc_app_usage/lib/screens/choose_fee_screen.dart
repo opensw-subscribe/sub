@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:poc_app_usage/datas/benefit_data.dart';
 import 'package:flutter/services.dart'; // 숫자 입력 제한용
@@ -19,7 +21,6 @@ class ChooseFeeScreen extends StatefulWidget {
   @override
   State<ChooseFeeScreen> createState() => _ChooseFeeScreenState();
 }
-
 
 class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
   String? selectedFee;
@@ -45,7 +46,9 @@ class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1A237E),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             child: const Text('추가하기'),
           ),
@@ -150,13 +153,20 @@ class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
                 if (selectedCurrency == '\$') {
                   feeAmount = (feeAmount * 1350).round(); // 달러를 원화로 변환
                 }
-                
-                await prefs.setString('${widget.platformName}_fee', feeAmount.toString());
-                
-                logger.d('✅ SharedPreferences 저장 (사용자 입력): ${widget.platformName}_fee = $feeAmount');
 
-                Navigator.pop(context); // 팝업 닫기
-                
+                await prefs.setString(
+                  '${widget.platformName}_fee',
+                  feeAmount.toString(),
+                );
+
+                logger.d(
+                  '✅ SharedPreferences 저장 (사용자 입력): ${widget.platformName}_fee = $feeAmount',
+                );
+
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+
                 if (!mounted) return;
                 ScaffoldMessenger.of(
                   context,
@@ -164,9 +174,9 @@ class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
 
                 // 추가 선택 여부 다이얼로그 표시
                 final bool? addMore = await _showAddMoreDialog();
-                
+
                 if (!mounted) return;
-                
+
                 if (addMore == true) {
                   // 추가 선택 - 플랫폼 선택 화면으로 돌아가기
                   Navigator.pop(context); // ChooseFeeScreen 닫기
@@ -244,10 +254,10 @@ class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
                       // 요금제 문자열에서 숫자만 추출 (예: "유튜브 프리미엄 (월 14,900원)" -> "14900")
                       // 쉼표와 모든 비숫자 문자 제거
                       String feeAmount = fee
-                          .replaceAll(',', '')  // 쉼표 제거
-                          .replaceAll(RegExp(r'[^0-9]'), '')  // 숫자가 아닌 모든 문자 제거
+                          .replaceAll(',', '') // 쉼표 제거
+                          .replaceAll(RegExp(r'[^0-9]'), '') // 숫자가 아닌 모든 문자 제거
                           .trim();
-                      
+
                       if (feeAmount.isEmpty) {
                         if (!mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -256,23 +266,28 @@ class _ChooseFeeScreenState extends State<ChooseFeeScreen> {
                         logger.d('⚠️ 요금제 금액 추출 실패: $fee');
                         return;
                       }
-                      
+
                       logger.d('💰 추출된 요금: $feeAmount원 (원본: $fee)');
 
                       // SharedPreferences에 저장
                       final prefs = await SharedPreferences.getInstance();
                       // 키 형식: "플랫폼이름_fee", 값: "금액"
-                      await prefs.setString('${widget.platformName}_fee', feeAmount);
-                      
-                      logger.d('✅ SharedPreferences 저장: ${widget.platformName}_fee = $feeAmount');
+                      await prefs.setString(
+                        '${widget.platformName}_fee',
+                        feeAmount,
+                      );
+
+                      logger.d(
+                        '✅ SharedPreferences 저장: ${widget.platformName}_fee = $feeAmount',
+                      );
 
                       if (!mounted) return;
-                      
+
                       // 추가 선택 여부 다이얼로그 표시
                       final bool? addMore = await _showAddMoreDialog();
-                      
+
                       if (!mounted) return;
-                      
+
                       if (addMore == true) {
                         // 추가 선택 - 플랫폼 선택 화면으로 돌아가기
                         Navigator.pop(context); // ChooseFeeScreen 닫기
