@@ -1,27 +1,62 @@
-name: Backend API Test
+name: Backend API Integration Test
 on: [push, pull_request]
 
 jobs:
-  backend-test:
+  backend-integration-test:
     runs-on: ubuntu-latest
     
     defaults:
       run:
-        # 모든 'run' 스텝의 기본 작업 디렉토리를 'backend'로 설정
         working-directory: ./Backend
 
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Python
+      # 1. GitHub 저장소의 코드 Checkout
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      # 2. Docker 이미지 빌드 (1단계)
+      - name: Build Backend Docker Image
+        run: docker build -t backend-app:local .
+        # working-directory가 ./Backend 이므로, './Backend' 대신 '.' 사용 가능
+        
+      # 3. Minikube 및 Kubernetes 설정
+      - name: Set up Minikube and Kubernetes
+        uses: medyagh/setup-minikube@latest
+        with:
+          minikube-version: 'latest' # Minikube 설치
+          
+      # 4. 배포 및 서비스 노출 (2단계)
+      - name: Deploy to Minikube
+        run: |
+          # 4-1. Docker 이미지를 Minikube 환경으로 가져옴
+          minikube image load backend-app:local
+          
+          # 4-2. Kubernetes Deployment 및 Service 배포 (Service는 NodePort 타입이어야 함)
+          kubectl apply -f kubernetes/deployment.yaml
+          kubectl apply -f kubernetes/service.yaml
+          
+          # 4-3. 배포가 완료될 때까지 기다림
+          kubectl wait --for=condition=Available deployment/backend-deployment --timeout=300s
+          
+          # 4-4. 백엔드 서비스의 외부 접속 URL 획득 및 환경 변수 설정
+          BACKEND_URL=$(minikube service backend-service --url)
+          
+          # 4-5. 다음 스텝에서 사용할 수 있도록 환경 변수 설정
+          echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
+          echo "획득된 백엔드 URL: $BACKEND_URL"
+
+      # 5. Python 및 Pytest 설정
+      - name: Set up Python and Install dependencies
         uses: actions/setup-python@v5
         with:
-          python-version: 3.10
-
-      - name: Install dependencies
+          python-version: '3.10'
+      
+      - name: Install Test dependencies
         run: |
           pip install -r requirements.txt
-          pip install pytest
+          pip install pytest requests # 'requests'는 test_api.py에서 사용됨
 
-      - name: Run Pytest
-        run: pytest
+      # 6. 테스트 실행 (3단계)
+      - name: Run Backend Integration Test
+        # 이전 스텝에서 설정된 $BACKEND_URL 환경 변수를 Pytest가 사용합니다.
+        run: pytest test_api.py
