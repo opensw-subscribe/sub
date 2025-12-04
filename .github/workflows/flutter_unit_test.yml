@@ -4,10 +4,25 @@ on: [push, pull_request]
 jobs:
   unit-test:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./Frontend 
+
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with:
-          flutter-version: 3.35.7
-      - run: flutter pub get
-      - run: flutter test test/unit
+          # 사용하는 Flutter 버전
+          flutter-version: 3.35.7 
+          
+      # 1. 의존성 설치 (frontend 폴더 내의 pubspec.yaml 사용)
+      - name: Get Dependencies
+        run: flutter pub get 
+        
+      # 2. 단위 테스트 실행 
+      # ./frontend 폴더를 기준으로 'test/units' 폴더 안의 테스트 파일을 실행
+      - name: Run Unit Tests
+        run: flutter test test/units

@@ -4,10 +4,24 @@ on: [push, pull_request]
 jobs:
   analyze:
     runs-on: ubuntu-latest
+  
+    defaults:
+      run:
+        working-directory: ./Frontend 
+
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with:
-          flutter-version: 3.35.7
-      - run: flutter pub get
-      - run: flutter analyze
+          # 사용하는 Flutter 버전
+          flutter-version: 3.35.7 
+          
+      # 1. 의존성 설치 (frontend 폴더 내의 pubspec.yaml 사용)
+      - name: Get Dependencies
+        run: flutter pub get 
+        
+      # 2. 코드 분석 실행 (frontend 폴더 내의 코드를 분석)
+      - name: Run Flutter Analyze
+        run: flutter analyze
