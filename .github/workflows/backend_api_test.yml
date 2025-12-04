@@ -82,9 +82,9 @@ jobs:
       - name: ⏳ Wait for Application Readiness
         run: sleep 30
 
-      # 5-3. (핵심) 충돌 후 최종 상태 확인 및 로그 출력
-      - name: 🚨 Final Log Check After Wait
-         run: |
+      # 5-3. 충돌 후 최종 상태 확인 및 로그 출력
+      - name: Final Log Check After Wait
+        run: |
           echo "--- 최종 Pod 상태 ---"
           kubectl get pods 
           echo "--- 백엔드 컨테이너 최종 로그 ---"
