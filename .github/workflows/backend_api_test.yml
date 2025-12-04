@@ -30,7 +30,7 @@ jobs:
       - name: Create Firebase Secret File
         run: |
           # GitHub Secret의 내용을 service_account_key.json 파일로 임시 저장
-          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}" | base64 -d > service_account_key.json 
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}" > service_account_key.json 
 
       # 5. 배포 및 서비스 노출
       - name: Deploy to Minikube and Get URL
