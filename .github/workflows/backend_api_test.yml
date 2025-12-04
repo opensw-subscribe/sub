@@ -27,6 +27,8 @@ jobs:
 
       - name: Deploy to Minikube
         run: |
+          echo "🚀 배포 시작"
+          
           echo "--- 1. Docker 이미지 로드 ---"
           minikube image load fastapi-app:local
 
@@ -39,78 +41,83 @@ jobs:
           echo "--- 3. Deployment 및 Service 배포 ---"
           kubectl apply -f k8s/
 
-          echo "--- 4. DB 배포 대기 ---"
+          echo "--- 4. Deployment 준비 대기 ---"
+          echo "⏳ DB 배포 대기..."
           kubectl wait --for=condition=Available deployment/db --timeout=600s 
-          echo "⏳ DB Pod Ready 대기..."
-          kubectl wait --for=condition=Ready pod -l app=db --timeout=300s || true
-
-          echo "--- 5. Redis 배포 대기 ---"
+          echo "✅ DB Deployment 준비 완료"
+          
+          echo "⏳ Redis 배포 대기..."
           kubectl wait --for=condition=Available deployment/redis --timeout=300s
-          echo "⏳ Redis Pod Ready 대기..."
-          kubectl wait --for=condition=Ready pod -l app=redis --timeout=300s || true
-
-          echo "--- 6. 백엔드 배포 대기 ---"
+          echo "✅ Redis Deployment 준비 완료"
+          
+          echo "⏳ Backend 배포 대기..."
           kubectl wait --for=condition=Available deployment/backend-deployment --timeout=300s
-          echo "⏳ Backend Pod Ready 대기..."
-          kubectl wait --for=condition=Ready pod -l app=backend --timeout=300s || true
+          echo "✅ Backend Deployment 준비 완료"
+
+          echo "--- 5. Pod Running 상태 대기 (최대 5분) ---"
+          for i in {1..60}; do
+            TOTAL_PODS=$(kubectl get pods --no-headers 2>/dev/null | wc -l)
+            RUNNING_PODS=$(kubectl get pods --no-headers 2>/dev/null | grep "Running" | wc -l)
+            
+            echo "[$i/60] Pod 상태: $RUNNING_PODS/$TOTAL_PODS Running"
+            
+            if [ "$RUNNING_PODS" -eq "$TOTAL_PODS" ] && [ "$TOTAL_PODS" -gt 0 ]; then
+              echo "✅ 모든 Pod Running!"
+              kubectl get pods
+              break
+            fi
+            
+            if [ $((i % 10)) -eq 0 ]; then
+              echo "현재 Pod 상태:"
+              kubectl get pods
+            fi
+            
+            sleep 5
+          done
+
+          echo "--- 6. 최종 상태 확인 ---"
+          kubectl get pods
+          kubectl get services
 
           echo "--- 7. 백엔드 서비스 URL 획득 ---"
           BACKEND_URL=$(minikube service backend-service --url)
           echo "BACKEND_URL=$BACKEND_URL" >> $GITHUB_ENV
           echo "✅ 백엔드 URL: $BACKEND_URL"
 
-      # ✨ 핵심: 헬스체크 재시도 로직
       - name: Wait for Backend Health Check
         run: |
           echo "🔍 백엔드 헬스체크 시작..."
-          MAX_ATTEMPTS=60
+          echo "📡 대상 URL: $BACKEND_URL"
+          
+          MAX_ATTEMPTS=30
           ATTEMPT=0
-          SLEEP_TIME=5
+          SLEEP_TIME=10
           
           while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
             ATTEMPT=$((ATTEMPT + 1))
             echo "[$ATTEMPT/$MAX_ATTEMPTS] 헬스체크 시도 중..."
             
-            # curl로 헬스체크 (실패해도 계속)
             if curl -f -s --max-time 5 "$BACKEND_URL/health" > /dev/null 2>&1; then
               echo "✅ 백엔드 준비 완료!"
-              echo "📡 최종 URL: $BACKEND_URL"
+              echo "🎉 헬스체크 성공!"
               exit 0
             fi
             
-            # 실패 시 대기
             if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
               echo "⏳ ${SLEEP_TIME}초 대기 후 재시도..."
               sleep $SLEEP_TIME
             fi
           done
           
-          # 최대 시도 횟수 초과
           echo "❌ 백엔드 헬스체크 실패 (${MAX_ATTEMPTS}회 시도)"
           echo ""
           echo "=== 디버깅 정보 ==="
           echo "--- Pod 상태 ---"
           kubectl get pods
           echo ""
-          echo "--- Backend 로그 (최근 100줄) ---"
-          kubectl logs deployment/backend-deployment --tail=100 || echo "로그 없음"
-          echo ""
-          echo "--- DB 로그 (최근 50줄) ---"
-          kubectl logs deployment/db --tail=50 || echo "로그 없음"
+          echo "--- Backend 로그 ---"
+          kubectl logs deployment/backend-deployment --tail=100
           exit 1
-
-      # ✨ 추가: 최종 상태 확인
-      - name: Show Final Status
-        run: |
-          echo "=== 최종 배포 상태 ==="
-          echo "--- Pods ---"
-          kubectl get pods
-          echo ""
-          echo "--- Services ---"
-          kubectl get services
-          echo ""
-          echo "--- Backend URL ---"
-          echo "$BACKEND_URL"
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -124,28 +131,25 @@ jobs:
 
       - name: Run Backend Integration Test
         run: |
-          echo "🧪 테스트 실행 시작"
-          echo "📡 테스트 대상 URL: $BACKEND_URL"
+          echo "🧪 API 통합 테스트 실행"
+          echo "📡 테스트 대상: $BACKEND_URL"
           pytest test/test_api.py -v -s
         env:
           BACKEND_URL: ${{ env.BACKEND_URL }}
 
-      # ✨ 실패 시 디버깅 정보
       - name: Debug on Failure
         if: failure()
         run: |
-          echo "=== 테스트 실패 - 디버깅 정보 ==="
+          echo "=== 테스트 실패 - 전체 디버깅 정보 ==="
+          echo ""
           echo "--- Pod 상태 ---"
           kubectl get pods
           echo ""
-          echo "--- Backend 로그 (전체) ---"
+          echo "--- Backend 로그 (최근 200줄) ---"
           kubectl logs deployment/backend-deployment --tail=200
           echo ""
-          echo "--- DB 로그 ---"
+          echo "--- DB 로그 (최근 100줄) ---"
           kubectl logs deployment/db --tail=100
           echo ""
-          echo "--- Redis 로그 ---"
+          echo "--- Redis 로그 (최근 50줄) ---"
           kubectl logs deployment/redis --tail=50
-          echo ""
-          echo "--- 환경 변수 ---"
-          echo "BACKEND_URL: $BACKEND_URL"
