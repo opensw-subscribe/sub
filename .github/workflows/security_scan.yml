@@ -7,10 +7,11 @@ on:
 jobs:
   dependency-review:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Run Dependency Review
+      - name: Dependency Review
         uses: actions/dependency-review-action@v4
