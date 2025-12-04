@@ -15,7 +15,8 @@ jobs:
 
       - name: Restore google-services.json
         run: |
-          echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > android/app/google-services.json
+          mkdir -p Frontend/poc_app_usage/android/app
+          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > Frontend/poc_app_usage/android/app/google-services.json
           
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
