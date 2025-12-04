@@ -5,7 +5,7 @@ class Config {
   // **defalut 값은 Android 에뮬레이터에서 호스트(로컬) 서버에 접근하기 위한 주소
   static const String baseUrl = String.fromEnvironment(
     'API_URL',
-    defaultValue: 'http://10.0.2.2:50179', // 로컬 개발 환경 주소
+    defaultValue: 'http://10.0.2.2:57584', // 로컬에서 돌릴 때 여기 변경!!
   );
   
   static const String usersEndpoint = '$baseUrl/api/users';

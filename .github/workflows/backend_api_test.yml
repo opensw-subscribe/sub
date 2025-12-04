@@ -54,8 +54,10 @@ jobs:
           # 디버깅: Deployment가 실제로 생성되었는지 확인
           kubectl get deployments
           
+          kubectl logs deployment/backend-deployment
+          
           echo "--- 5-4. 배포 완료 대기 ---"
-          kubectl wait --for=condition=Available deployment/backend-deployment --timeout=600s
+          kubectl wait --for=condition=Available deployment/backend-deployment --timeout=300s
           
           echo "--- 5-5. 백엔드 서비스 URL 획득 및 환경 변수 설정 ---"
           # Minikube Service 이름이 'backend-service'라고 가정합니다.
