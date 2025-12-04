@@ -1,0 +1,42 @@
+name: Flutter Code Analysis
+on: 
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+  
+    defaults:
+      run:
+        working-directory: ./Frontend/poc_app_usage
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.35.7
+          channel: 'stable'
+          
+      - name: Cache pub packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            Frontend/poc_app_usage/.dart_tool
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+          
+      - name: Get Dependencies
+        run: flutter pub get 
+        
+      - name: Run Flutter Analyze
+        run: flutter analyze
+
+      - name: Run Tests
+        run: flutter test
