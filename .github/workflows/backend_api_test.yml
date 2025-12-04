@@ -31,11 +31,19 @@ jobs:
           # 4-1. Docker 이미지를 Minikube 환경으로 가져옴
           minikube image load backend-app:local
 
+          # 3.5. Firebase Secret 파일 생성 (GitHub Secret 사용)
+          - name: Create Firebase Secret File
+            run: |
+              # GitHub Secret의 내용을 service_account_key.json 파일로 임시 저장
+              echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}" > service_account_key.json 
+            # Secret 파일 생성이 Backend 폴더에서 이뤄지도록 working-directory를 유지합니다.
+            working-directory: ./Backend
+
           # Deploy to Minikube 스텝에 추가
           # 4번 Firebase Secret 생성 (테스트용 더미 파일 또는 CI/CD 변수 사용)
           kubectl create secret generic firebase-key-secret --from-file=service_account_key.json
 
-          # 5번 Postgres Secret 생성
+          # 4-1. Postgres Secret 생성
           kubectl create secret generic postgres-secret --from-literal=POSTGRES_USER=postgres --from-literal=POSTGRES_PASSWORD=1234
           
           # 4-2. Kubernetes Deployment 및 Service 배포 (Service는 NodePort 타입이어야 함)
