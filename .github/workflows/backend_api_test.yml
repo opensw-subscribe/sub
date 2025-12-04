@@ -56,14 +56,11 @@ jobs:
 
           echo "--- 5-4. 배포 완료 대기 ---"
           # wait 명령이 타임아웃되어도 스크립트가 중단되지 않도록 || true 추가
-          kubectl wait --for=condition=Available deployment/backend-deployment --timeout=360s || true
+          kubectl wait --for=condition=Available deployment/backend-deployment --timeout=500s || true
 
           echo "--- 5-5. 디버깅 정보 확인 (타임아웃 발생 시 실행) ---"
           # Pod 상태 확인: Pending, Running, CrashLoopBackOff 등 확인
           kubectl get pods 
-          
-          # Backend Deployment의 상세 이벤트 확인 (왜 실패했는지)
-          BACKEND_POD_NAME=$(kubectl get pods -l io.kompose.service=backend -o jsonpath="{.items[0].metadata.name}")
           
           echo "--- 5-5. 백엔드 서비스 URL 획득 및 환경 변수 설정 ---"
           # Minikube Service 이름이 'backend-service'라고 가정합니다.
