@@ -45,9 +45,14 @@ jobs:
           # 5번 Postgres Secret 생성
           kubectl create secret generic postgres-secret --from-literal=POSTGRES_USER=postgres --from-literal=POSTGRES_PASSWORD=1234
           
+          # 디버깅: Secret이 제대로 생성되었는지 확인
+          kubectl get secrets
+          
           echo "--- 5-3. Deployment 및 Service 배포 (k8s 폴더 사용) ---"
-          # k8s 폴더에 있는 .yaml 파일을 모두 적용합니다.
           kubectl apply -f k8s/
+
+          # 디버깅: Deployment가 실제로 생성되었는지 확인
+          kubectl get deployments
           
           echo "--- 5-4. 배포 완료 대기 ---"
           kubectl wait --for=condition=Available deployment/backend-deployment --timeout=300s

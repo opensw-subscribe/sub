@@ -6,7 +6,7 @@ metadata:
     kompose.version: 1.37.0 (HEAD)
   labels:
     io.kompose.service: backend
-  name: backend
+  name: backend-deployment
 spec:
   replicas: 1
   selector:
