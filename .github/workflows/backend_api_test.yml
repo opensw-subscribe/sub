@@ -17,7 +17,7 @@ jobs:
         
       # 2. Docker 이미지 빌드
       - name: Build Backend Docker Image
-        run: docker build -t backend-app:local .
+        run: docker build -t fastapi-app:local .
         
       # 3. Minikube 및 Kubernetes 설정
       - name: Set up Minikube and Kubernetes
@@ -36,7 +36,7 @@ jobs:
       - name: Deploy to Minikube and Get URL
         run: |
           echo "--- 5-1. Docker 이미지를 Minikube 환경으로 로드 ---"
-          minikube image load backend-app:local
+          minikube image load fastapi-app:local
 
           echo "--- 5-2. Kubernetes Secret 생성 (Firebase, Postgres) ---"
           # 4번 Firebase Secret 생성 (파일이 현재 디렉토리(.Backend)에 존재)
@@ -63,7 +63,7 @@ jobs:
           kubectl get pods 
           
           # Backend Deployment의 상세 이벤트 확인 (왜 실패했는지)
-          BACKEND_POD_NAME=$(kubectl get pods -l app=backend -o jsonpath="{.items[0].metadata.name}")
+          BACKEND_POD_NAME=$(kubectl get pods -l io.kompose.service=backend -o jsonpath="{.items[0].metadata.name}")
           
           echo "--- 5-5. 백엔드 서비스 URL 획득 및 환경 변수 설정 ---"
           # Minikube Service 이름이 'backend-service'라고 가정합니다.
