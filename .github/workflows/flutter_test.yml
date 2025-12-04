@@ -1,4 +1,4 @@
-name: Flutter Code Analysis
+name: Flutter Quality Check
 on: 
   push:
     branches: [ "main", "develop" ]
