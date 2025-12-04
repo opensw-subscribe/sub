@@ -1,8 +1,7 @@
 from fastapi import Depends, FastAPI, Request
-from Backend.app.routers import health
 from app.core.firebase import firebase_auth
 from app.db import models, session
-from app.routers import users, subscriptions, analysis
+from app.routers import users, subscriptions, health
 from app.routers.users import router as users_router
 import os
 import redis
