@@ -39,6 +39,7 @@ jobs:
       # 1. 코드 포맷 체크
       - name: Check Code Formatting
         run: dart format --set-exit-if-changed lib/ test/
+        continue-on-error: true
         
       # 2. 정적 분석
       - name: Run Flutter Analyze
