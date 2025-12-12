@@ -1,7 +1,9 @@
-# 2025학년도 2학기 오픈소스SW실습 팀 프로젝트
+<h1 style="margin-top: -8px; font-weight: 600;">
+  2025학년도 2학기 오픈소스SW실습 팀 프로젝트<br />
+  <img src="Logo.png" alt="logo" width="30" style="vertical-align: middle; margin-right: 6px;" />
+  KeepCut — 구독 서비스 가치 계산 플랫폼
+</h1>
 
-## **KeepCut — 구독 서비스 가치 계산 플랫폼**
-![프로젝트 로고](Logo.png)
 
 ## 👥 개발 참여
 
